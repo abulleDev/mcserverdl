@@ -1,9 +1,9 @@
 package vanilla
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
+
+	"github.com/abulleDev/mcserverdl/internal"
 )
 
 type detailManifest struct {
@@ -26,22 +26,10 @@ func DownloadURL(gameVersion string) (string, error) {
 	// URL of the version manifest containing all Minecraft vanilla versions
 	const url = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 
-	// Fetch the version manifest from the Mojang API
-	versionResponse, err := http.Get(url)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch version manifest: %w", err)
-	}
-	defer versionResponse.Body.Close()
-
-	// Check for a successful HTTP response
-	if versionResponse.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected status %d when fetching version manifest", versionResponse.StatusCode)
-	}
-
-	// Decode the JSON manifest into versionManifest struct
+	// Fetch and decode the version manifest
 	var versionData versionManifest
-	if err := json.NewDecoder(versionResponse.Body).Decode(&versionData); err != nil {
-		return "", fmt.Errorf("failed to parse version manifest: %w", err)
+	if err := internal.FetchJSON(url, &versionData); err != nil {
+		return "", err
 	}
 
 	// Find the detail URL for the requested game version
@@ -58,22 +46,10 @@ func DownloadURL(gameVersion string) (string, error) {
 		return "", fmt.Errorf("unsupported game version: %s", gameVersion)
 	}
 
-	// Fetch the detail manifest for the specific version
-	detailResponse, err := http.Get(detailURL)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch version detail manifest: %w", err)
-	}
-	defer detailResponse.Body.Close()
-
-	// Check for a successful HTTP response
-	if detailResponse.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected status %d when fetching version detail manifest", detailResponse.StatusCode)
-	}
-
-	// Decode the JSON manifest into detailManifest struct
+	// Fetch and decode the version detail manifest
 	var detailData detailManifest
-	if err := json.NewDecoder(detailResponse.Body).Decode(&detailData); err != nil {
-		return "", fmt.Errorf("failed to parse version detail manifest: %w", err)
+	if err := internal.FetchJSON(url, &detailData); err != nil {
+		return "", err
 	}
 
 	// Return an error if the server download is not available

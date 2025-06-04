@@ -1,9 +1,7 @@
 package vanilla
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
+	"github.com/abulleDev/mcserverdl/internal"
 )
 
 type versionManifest struct {
@@ -25,22 +23,10 @@ func Versions(latestFirst bool) ([]string, error) {
 	// URL of the version manifest containing all Minecraft vanilla versions
 	const url = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 
-	// Fetch the manifest from the Mojang API
-	versionResponse, err := http.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch version manifest: %w", err)
-	}
-	defer versionResponse.Body.Close()
-
-	// Check for a successful HTTP response
-	if versionResponse.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status %d when fetching version manifest", versionResponse.StatusCode)
-	}
-
-	// Decode the JSON manifest into versionManifest struct
+	// Fetch and decode the version manifest
 	var versionData versionManifest
-	if err := json.NewDecoder(versionResponse.Body).Decode(&versionData); err != nil {
-		return nil, fmt.Errorf("failed to parse version manifest: %w", err)
+	if err := internal.FetchJSON(url, &versionData); err != nil {
+		return nil, err
 	}
 
 	// Create a slice with version ID as a value
