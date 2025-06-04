@@ -29,14 +29,14 @@ func Versions(latestFirst bool) ([]string, error) {
 		return nil, err
 	}
 
-	// Create a slice with version ID as a value
+	// Create a slice with version ID as a value (higher versions first)
 	versions := make([]string, 0, len(versionData.Versions))
 	for _, version := range versionData.Versions {
 		versions = append(versions, version.ID)
 	}
 
+	// Reverse the slice (lower versions first)
 	if !latestFirst {
-		// Reverse the slice order
 		for i, j := 0, len(versions)-1; i < j; i, j = i+1, j-1 {
 			versions[i], versions[j] = versions[j], versions[i]
 		}
