@@ -21,7 +21,7 @@ type detailManifest struct {
 //
 // Returns:
 //   - string: the direct download URL for the server JAR file.
-//   - error: an error if the version is not found or if any HTTP or JSON parsing issues occur.
+//   - error: an error if the version is not found or if any HTTP or JSON decoding issues occur.
 func DownloadURL(gameVersion string) (string, error) {
 	// URL of the version manifest containing all Minecraft vanilla versions
 	const url = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"

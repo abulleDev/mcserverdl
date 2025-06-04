@@ -18,7 +18,7 @@ type versionManifest struct {
 //
 // Returns:
 //   - []string: a slice of Minecraft versions (e.g., "1.16.5", "15w14a", "1.18-pre2").
-//   - error: an error if any HTTP or JSON parsing issues occur.
+//   - error: an error if any HTTP or JSON decoding issues occur.
 func Versions(latestFirst bool) ([]string, error) {
 	// URL of the version manifest containing all Minecraft vanilla versions
 	const url = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
