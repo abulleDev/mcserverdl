@@ -29,8 +29,8 @@ func Builds(gameVersion string, latestFirst bool) ([]int, error) {
 		return nil, fmt.Errorf("unsupported game version: %s", gameVersion)
 	}
 
-	// Reverse the slice (lower versions first)
-	if !latestFirst {
+	// Reverse the slice (higher versions first)
+	if latestFirst {
 		builds := make([]int, 0, len(buildData.Builds))
 		for i := len(buildData.Builds) - 1; i >= 0; i-- {
 			builds = append(builds, buildData.Builds[i])
@@ -38,6 +38,6 @@ func Builds(gameVersion string, latestFirst bool) ([]int, error) {
 		return builds, nil
 	}
 
-	// Return the versions as-is (higher versions first)
+	// Return the versions as-is (lower versions first)
 	return buildData.Builds, nil
 }
