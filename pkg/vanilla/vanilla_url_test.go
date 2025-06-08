@@ -6,7 +6,7 @@ import (
 	"github.com/abulleDev/mcserverdl/pkg/vanilla"
 )
 
-func TestDownloadURL(t *testing.T) {
+func TestVanillaDownloadURL(t *testing.T) {
 	t.Run("valid version", func(t *testing.T) {
 		_, err := vanilla.DownloadURL("1.12.2")
 		if err != nil {
