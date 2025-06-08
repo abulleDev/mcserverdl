@@ -48,7 +48,7 @@ func DownloadURL(gameVersion string) (string, error) {
 
 	// Fetch and decode the version detail manifest
 	var detailData detailManifest
-	if err := internal.FetchJSON(url, &detailData); err != nil {
+	if err := internal.FetchJSON(detailURL, &detailData); err != nil {
 		return "", err
 	}
 
