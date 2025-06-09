@@ -14,7 +14,7 @@ import (
 //
 // Returns:
 //   - error: an error if the HTTP request fails or the JSON cannot be decoded.
-func FetchJSON(url string, value any) error {
+func FetchJSON[T any](url string, value *T) error {
 	// Send HTTP GET request to the specified URL
 	response, err := http.Get(url)
 	if err != nil {
