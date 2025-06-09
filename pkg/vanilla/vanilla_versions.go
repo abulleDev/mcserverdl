@@ -29,16 +29,16 @@ func Versions(latestFirst bool) ([]string, error) {
 		return nil, err
 	}
 
-	// Create a slice with version ID as a value (higher versions first)
 	versions := make([]string, 0, len(versionData.Versions))
-	for _, version := range versionData.Versions {
-		versions = append(versions, version.ID)
-	}
-
-	// Reverse the slice (lower versions first)
-	if !latestFirst {
-		for i, j := 0, len(versions)-1; i < j; i, j = i+1, j-1 {
-			versions[i], versions[j] = versions[j], versions[i]
+	if latestFirst {
+		// Build the slice from first to last (higher versions first)
+		for _, version := range versionData.Versions {
+			versions = append(versions, version.ID)
+		}
+	} else {
+		// Build the slice from last to first (lower versions first)
+		for i := len(versionData.Versions) - 1; i >= 0; i-- {
+			versions = append(versions, versionData.Versions[i].ID)
 		}
 	}
 
