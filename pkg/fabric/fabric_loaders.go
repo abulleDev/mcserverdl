@@ -2,7 +2,7 @@ package fabric
 
 import "github.com/abulleDev/mcserverdl/internal"
 
-type fabricBuildVersionManifest []struct {
+type fabricLoaderVersionManifest []struct {
 	Version string `json:"version"`
 }
 
@@ -19,7 +19,7 @@ func Loaders(latestFirst bool) ([]string, error) {
 	const url = "https://meta2.fabricmc.net/v2/versions/loader"
 
 	// Fetch and decode JSON the fabric loader manifest
-	var loaderData fabricBuildVersionManifest
+	var loaderData fabricLoaderVersionManifest
 	if err := internal.FetchJSON(url, &loaderData); err != nil {
 		return nil, err
 	}
