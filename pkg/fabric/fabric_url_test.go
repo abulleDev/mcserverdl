@@ -24,7 +24,7 @@ func TestFabricDownloadURL(t *testing.T) {
 	t.Run("invalid loader version", func(t *testing.T) {
 		_, err := fabric.DownloadURL("1.21.5", "0")
 		if err == nil {
-			t.Error("expected error for invalid loader number, got nil")
+			t.Error("expected error for invalid loader version, got nil")
 		}
 	})
 }
