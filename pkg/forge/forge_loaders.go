@@ -15,7 +15,7 @@ import (
 //   - latestFirst: if true, returns the loader versions with higher versions first. If false, returns the loader versions with lower versions first.
 //
 // Returns:
-//   - []string: a slice of Fabric loader versions (e.g., "56.0.3", "14.23.4.2720").
+//   - []string: a slice of Forge loader versions (e.g., "56.0.3", "14.23.4.2720").
 //   - error: an error if the game version is not supported or if any HTTP or JSON decoding issues occur.
 func Loaders(gameVersion string, latestFirst bool) ([]string, error) {
 	// URL of the version manifest containing all Minecraft forge versions
