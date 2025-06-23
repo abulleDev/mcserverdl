@@ -12,7 +12,7 @@ import (
 //
 // Parameters:
 //   - gameVersion: the Minecraft version string (e.g., "1.21.6", "1.7.10-pre4", "1.4").
-//   - loaderVersion: the Fabric loader version string (e.g., "14.23.4.2720").
+//   - loaderVersion: the Forge loader version string (e.g., "14.23.4.2720").
 //
 // Returns:
 //   - string: the direct download URL for the Forge server installer/archive file if the versions exist.
