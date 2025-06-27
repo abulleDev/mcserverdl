@@ -1,12 +1,10 @@
 package paper
 
 import (
-	"github.com/abulleDev/mcserverdl/internal"
+	"encoding/json"
+	"fmt"
+	"net/http"
 )
-
-type paperVersionManifest struct {
-	Versions []string `json:"versions"`
-}
 
 // Versions fetches the list of all Minecraft paper server versions from the official PaperMC API version manifest.
 //
@@ -18,23 +16,86 @@ type paperVersionManifest struct {
 //   - error: an error if any HTTP or JSON decoding issues occur.
 func Versions(latestFirst bool) ([]string, error) {
 	// URL of the version manifest containing all Minecraft paper server versions
-	const url = "https://api.papermc.io/v2/projects/paper"
+	const url = "https://fill.papermc.io/v3/projects/paper"
 
-	// Fetch and decode the paper server version manifest
-	var versionData paperVersionManifest
-	if err := internal.FetchJSON(url, &versionData); err != nil {
-		return nil, err
+	// Send HTTP GET request to the specified URL
+	response, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch JSON from %s: %w", url, err)
+	}
+	defer response.Body.Close()
+
+	// Check for a successful HTTP response
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status %d when fetching JSON from %s", response.StatusCode, url)
 	}
 
-	// Return the versions as-is (lower versions first)
-	if !latestFirst {
-		return versionData.Versions, nil
+	var versions []string
+
+	decoder := json.NewDecoder(response.Body)
+
+	// 1. Read the opening token of the top-level object ({).
+	_, err = decoder.Token() // {
+	if err != nil {
+		return nil, fmt.Errorf("failed to read start of top-level JSON object: %w", err)
 	}
 
-	// Reverse the slice (higher versions first)
-	versions := make([]string, 0, len(versionData.Versions))
-	for i := len(versionData.Versions) - 1; i >= 0; i-- {
-		versions = append(versions, versionData.Versions[i])
+	// 2. Iterate through the keys of the top-level object.
+	for decoder.More() {
+		keyToken, err := decoder.Token()
+		if err != nil {
+			return nil, fmt.Errorf("failed to read JSON key token: %w", err)
+		}
+		key := keyToken.(string)
+
+		// 3. Find the "versions" key.
+		if key == "versions" {
+			// Read the opening token of the "versions" object ({).
+			_, err := decoder.Token() // {
+			if err != nil {
+				return nil, fmt.Errorf("failed to read start of 'versions' object: %w", err)
+			}
+
+			// 4. Iterate inside the "versions" object to read the list of versions.
+			for decoder.More() {
+				// Read the version group key (e.g., "1.21"), but it's not used here.
+				_, err := decoder.Token() // "1.21", "1.20", ...
+				if err != nil {
+					return nil, fmt.Errorf("failed to read version group key: %w", err)
+				}
+
+				// Decode the value for the key (the version array).
+				var versionList []string
+				if err := decoder.Decode(&versionList); err != nil {
+					return nil, fmt.Errorf("failed to decode version array: %w", err)
+				}
+
+				// Append the read version list to the final slice.
+				versions = append(versions, versionList...)
+			}
+			// Read the closing token of the "versions" object (}).
+			_, err = decoder.Token() // }
+			if err != nil {
+				return nil, fmt.Errorf("failed to read end of 'versions' object: %w", err)
+			}
+
+		} else {
+			// Skip the values of keys other than "versions".
+			var ignoredValue any
+			if err := decoder.Decode(&ignoredValue); err != nil {
+				return nil, fmt.Errorf("failed to skip JSON value: %w", err)
+			}
+		}
+	}
+
+	// Return the versions as-is (higher versions first)
+	if latestFirst {
+		return versions, nil
+	}
+
+	// Reverse the slice (lower versions first)
+	for i, j := 0, len(versions)-1; i < j; i, j = i+1, j-1 {
+		versions[i], versions[j] = versions[j], versions[i]
 	}
 	return versions, nil
 }
