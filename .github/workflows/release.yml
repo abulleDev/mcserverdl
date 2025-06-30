@@ -1,0 +1,46 @@
+name: Release mcserverdl
+
+on:
+  push:
+    tags:
+      - 'v*' # This workflow is only executed when tags beginning with v are pushed
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Grant permissions to create a release
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.5'
+
+      - name: Build binaries
+        run: |
+          # Create a directory to store the build results
+          mkdir -p release_assets
+
+          # Linux (amd64)
+          GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o release_assets/mcserverdl_linux_amd64 ./cmd/mcserverdl
+
+          # Windows (amd64)
+          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o release_assets/mcserverdl_windows_amd64.exe ./cmd/mcserverdl
+
+          # macOS (arm64 - Apple Silicon)
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o release_assets/mcserverdl_macos_arm64 ./cmd/mcserverdl
+
+          # macOS (amd64 - Intel)
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o release_assets/mcserverdl_macos_amd64 ./cmd/mcserverdl
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          name: mcserverdl ${{ github.ref_name }}
+          files: |
+            release_assets/*
