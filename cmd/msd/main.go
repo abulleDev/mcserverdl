@@ -135,7 +135,37 @@ func main() {
 			log.Println("java -jar installer.jar --installServer")
 		} else if strings.HasSuffix(url, ".zip") {
 			// Case 2: The URL points to a patch file that needs to be applied to a vanilla server
-			log.Fatal("Installation of older versions of Forge servers has not yet been implemented")
+			patchPath := filepath.Join(*path, "patch.zip")
+			vanillaPath := filepath.Join(*path, "vanilla.jar")
+			finalJarPath := filepath.Join(*path, "server.jar")
+
+			// Download the patch file
+			log.Printf("Downloading Forge patch file from %s...", url)
+			if err := internal.Download(url, patchPath); err != nil {
+				log.Fatalf("Error downloading patch file: %v", err)
+			}
+
+			// Download the corresponding vanilla server JAR
+			log.Printf("Downloading vanilla server for %s...", *gameVersion)
+			vanillaURL, err := vanilla.DownloadURL(*gameVersion)
+			if err != nil {
+				log.Fatalf("Error getting vanilla download URL: %v", err)
+			}
+			if err := internal.Download(vanillaURL, vanillaPath); err != nil {
+				log.Fatalf("Error downloading vanilla server: %v", err)
+			}
+
+			// Patch the server
+			log.Println("Patching vanilla server...")
+
+			if err := internal.MergeZips(vanillaPath, patchPath, finalJarPath); err != nil {
+				log.Fatalf("Error: %v", err)
+			}
+
+			defer os.Remove(patchPath)
+			defer os.Remove(vanillaPath)
+
+			log.Printf("Successfully created Forge server to %s", *path)
 		} else {
 			log.Fatalf("Unexpected URL format")
 		}
