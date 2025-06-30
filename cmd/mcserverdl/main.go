@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/abulleDev/mcserverdl/cmd/msd/internal"
+	"github.com/abulleDev/mcserverdl/cmd/mcserverdl/internal"
 	"github.com/abulleDev/mcserverdl/pkg/fabric"
 	"github.com/abulleDev/mcserverdl/pkg/forge"
 	"github.com/abulleDev/mcserverdl/pkg/neoforge"

@@ -20,15 +20,15 @@ A command-line tool and Go library to download and install various Minecraft ser
 To install the command-line tool, use `go install`:
 
 ```shell
-go install github.com/abulleDev/mcserverdl/cmd/msd@latest
+go install github.com/abulleDev/mcserverdl/cmd/mcserverdl@latest
 ```
 
 ## Usage
 
-The main command is `msd`. It requires flags to specify the server type and game version.
+The main command is `mcserverdl`. It requires flags to specify the server type and game version.
 
 ```shell
-msd -type <server_type> -game <game_version> [flags]
+mcserverdl -type <server_type> -game <game_version> [flags]
 ```
 
 ### Command-line Flags
@@ -44,13 +44,13 @@ msd -type <server_type> -game <game_version> [flags]
 
 ```shell
 # Download the latest Vanilla server for Minecraft 1.21 to the current directory.
-msd -type vanilla -game 1.21
+mcserverdl -type vanilla -game 1.21
 
 # Download Paper build 14 for Minecraft 1.21 into a folder named "my-paper-server".
-msd -type paper -game 1.21 -loader 14 -path ./my-paper-server
+mcserverdl -type paper -game 1.21 -loader 14 -path ./my-paper-server
 
 # Download and automatically install the latest Forge server for Minecraft 1.21.6.
-msd -type forge -game 1.21.6
+mcserverdl -type forge -game 1.21.6
 ```
 
 ## Library Usage
