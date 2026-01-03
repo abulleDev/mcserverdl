@@ -18,11 +18,12 @@ type detailManifest struct {
 //
 // Parameters:
 //   - gameVersion: the Minecraft version string (e.g., "1.16.5", "15w14a", "1.18-pre2").
+//   - serverVersion: ignored for vanilla as it doesn't have separate server versions.
 //
 // Returns:
 //   - string: the direct download URL for the server JAR file.
 //   - error: an error if the version is not found or if any HTTP or JSON decoding issues occur.
-func DownloadURL(gameVersion string) (string, error) {
+func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error) {
 	// URL of the version manifest containing all Minecraft vanilla versions
 	const url = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 
