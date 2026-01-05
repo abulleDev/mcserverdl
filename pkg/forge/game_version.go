@@ -7,15 +7,12 @@ import (
 	"github.com/abulleDev/mcserverdl/internal"
 )
 
-// Versions fetches the list of all Minecraft Forge-supported game versions from the official Forge maven metadata.
-//
-// Parameters:
-//   - latestFirst: if true, returns the versions with higher versions first. If false, returns the versions with lower versions first.
+// GameVersions fetches the list of all Minecraft Forge-supported game versions from the official Forge maven metadata.
 //
 // Returns:
 //   - []string: a slice of Minecraft versions supported by Forge (e.g., "1.21.6", "1.7.10-pre4", "1.4").
 //   - error: an error if any HTTP or JSON decoding issues occur.
-func Versions(latestFirst bool) ([]string, error) {
+func (p *Provider) GameVersions() ([]string, error) {
 	// URL of the version manifest containing all Minecraft forge versions
 	const url = "https://files.minecraftforge.net/net/minecraftforge/forge/maven-metadata.json"
 
@@ -45,11 +42,6 @@ func Versions(latestFirst bool) ([]string, error) {
 		case "1.4.0":
 			versionData[index] = "1.4"
 		}
-	}
-
-	// Return the versions as-is (lower versions first)
-	if !latestFirst {
-		return versionData, nil
 	}
 
 	// Reverse the slice (higher versions first)

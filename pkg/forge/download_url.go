@@ -12,12 +12,12 @@ import (
 //
 // Parameters:
 //   - gameVersion: the Minecraft version string (e.g., "1.21.6", "1.7.10-pre4", "1.4").
-//   - loaderVersion: the Forge loader version string (e.g., "14.23.4.2720").
+//   - serverVersion: the Forge loader version string (e.g., "14.23.4.2720").
 //
 // Returns:
 //   - string: the direct download URL for the Forge server installer/archive file if the versions exist.
 //   - error: an error if the game version or loader version is not found, or if any HTTP or JSON decoding issues occur.
-func DownloadURL(gameVersion string, loaderVersion string) (string, error) {
+func (p *Provider) DownloadURL(gameVersion string, serverVersion string) (string, error) {
 	// URL of the version manifest containing all Minecraft forge versions
 	const url = "https://files.minecraftforge.net/net/minecraftforge/forge/maven-metadata.json"
 
@@ -47,7 +47,7 @@ func DownloadURL(gameVersion string, loaderVersion string) (string, error) {
 	// Find the matching loader version and construct the URL
 	for i := len(rawLoaderVersions) - 1; i >= 0; i-- {
 		// Extract the loader version from the raw string (e.g., "1.7.10-10.13.3.1401-1710ls" -> "10.13.3.1401")
-		if strings.Split(rawLoaderVersions[i], "-")[1] == loaderVersion {
+		if strings.Split(rawLoaderVersions[i], "-")[1] == serverVersion {
 			// The file extension varies depending on the game version
 			switch gameVersion {
 			case
@@ -78,5 +78,5 @@ func DownloadURL(gameVersion string, loaderVersion string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("loader version %s not found for version %s", loaderVersion, gameVersion)
+	return "", fmt.Errorf("loader version %s not found for version %s", serverVersion, gameVersion)
 }
