@@ -7,7 +7,7 @@ import (
 	"github.com/abulleDev/mcserverdl/internal"
 )
 
-type fabricInstallerVersionManifest []struct {
+type installerVersionManifest []struct {
 	Version string `json:"version"`
 }
 
@@ -15,14 +15,14 @@ type fabricInstallerVersionManifest []struct {
 //
 // Parameters:
 //   - gameVersion: the Minecraft version string (e.g., "1.21.5", "25w14craftmine", "1.18-pre2").
-//   - loaderVersion: the Fabric loader version string (e.g., "0.16.14").
+//   - serverVersion: the Fabric loader version string (e.g., "0.16.14").
 //
 // Returns:
 //   - string: the direct download URL for the Fabric server JAR file if the versions exist.
 //   - error: an error if the game version or loader version is not found, or if any HTTP or JSON decoding issues occur.
-func DownloadURL(gameVersion string, loaderVersion string) (string, error) {
+func (p *Provider) DownloadURL(gameVersion string, serverVersion string) (string, error) {
 	// Fetch all supported game versions
-	gameVersions, err := Versions(true)
+	gameVersions, err := p.GameVersions()
 	if err != nil {
 		return "", err
 	}
@@ -34,20 +34,20 @@ func DownloadURL(gameVersion string, loaderVersion string) (string, error) {
 	}
 
 	// Fetch all supported loader versions
-	loaderVersions, err := Loaders(true)
+	loaderVersions, err := p.ServerVersions(gameVersion)
 	if err != nil {
 		return "", err
 	}
 
 	// Check if loaderVersion exists in loaderVersions
-	loaderVersionFound := slices.Contains(loaderVersions, loaderVersion)
+	loaderVersionFound := slices.Contains(loaderVersions, serverVersion)
 	if !loaderVersionFound {
-		return "", fmt.Errorf("loader version %s not found", loaderVersion)
+		return "", fmt.Errorf("loader version %s not found", serverVersion)
 	}
 
 	// Fetch all available installer versions
 	const url = "https://meta2.fabricmc.net/v2/versions/installer"
-	var installerData fabricInstallerVersionManifest
+	var installerData installerVersionManifest
 	if err := internal.FetchJSON(url, &installerData); err != nil {
 		return "", err
 	}
@@ -56,5 +56,5 @@ func DownloadURL(gameVersion string, loaderVersion string) (string, error) {
 	latestInstallerVersion := installerData[0].Version
 
 	// Build and return the download URL
-	return fmt.Sprintf("https://meta.fabricmc.net/v2/versions/loader/%s/%s/%s/server/jar", gameVersion, loaderVersion, latestInstallerVersion), nil
+	return fmt.Sprintf("https://meta.fabricmc.net/v2/versions/loader/%s/%s/%s/server/jar", gameVersion, serverVersion, latestInstallerVersion), nil
 }
