@@ -7,17 +7,16 @@ import (
 	"strings"
 )
 
-// Loaders fetches a list of available NeoForge loader versions for a given Minecraft version.
+// ServerVersions fetches a list of available NeoForge loader versions for a given Minecraft version.
 // It retrieves the data from the official NeoForged maven metadata.
 //
 // Parameters:
 //   - gameVersion: the Minecraft version string (e.g., "1.21.6", "25w14craftmine", "1.21").
-//   - latestFirst: if true, returns the loader versions with higher versions first. If false, returns the loader versions with lower versions first.
 //
 // Returns:
 //   - []string: a slice of NeoForge loader versions (e.g., "21.0.142-beta", "0.25w14craftmine.5-beta").
 //   - error: an error if the game version is not supported or if any HTTP or XML decoding issues occur.
-func Loaders(gameVersion string, latestFirst bool) ([]string, error) {
+func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
 	// URL of the version manifest containing all Minecraft neoforge versions
 	const url = "https://maven.neoforged.net/releases/net/neoforged/neoforge/maven-metadata.xml"
 
@@ -34,7 +33,7 @@ func Loaders(gameVersion string, latestFirst bool) ([]string, error) {
 	}
 
 	// Decode the XML response into the provided variable
-	var versionData neoforgeVersionManifest
+	var versionData versionManifest
 	if err := xml.NewDecoder(response.Body).Decode(&versionData); err != nil {
 		return nil, fmt.Errorf("failed to decode XML from %s: %w", url, err)
 	}
@@ -68,11 +67,6 @@ func Loaders(gameVersion string, latestFirst bool) ([]string, error) {
 	// If no matching loaders were found, the game version is unsupported
 	if len(matchingLoaderVersions) == 0 {
 		return nil, fmt.Errorf("unsupported game version: %s", gameVersion)
-	}
-
-	// Return the versions as-is (lower versions first)
-	if !latestFirst {
-		return matchingLoaderVersions, nil
 	}
 
 	// Reverse the slice (higher versions first)

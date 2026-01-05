@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-type neoforgeVersionManifest struct {
+type versionManifest struct {
 	Versioning struct {
 		Versions struct {
 			Version []string `xml:"version"`
@@ -15,15 +15,12 @@ type neoforgeVersionManifest struct {
 	} `xml:"versioning"`
 }
 
-// Versions fetches the list of all Minecraft NeoForge-supported game versions from the official NeoForged maven metadata.
-//
-// Parameters:
-//   - latestFirst: if true, returns the versions with higher versions first. If false, returns the versions with lower versions first.
+// GameVersions fetches the list of all Minecraft NeoForge-supported game versions from the official NeoForged maven metadata.
 //
 // Returns:
 //   - []string: a slice of Minecraft versions supported by NeoForge (e.g., "1.21.6", "25w14craftmine", "1.21").
 //   - error: an error if any HTTP or XML decoding issues occur.
-func Versions(latestFirst bool) ([]string, error) {
+func (p *Provider) GameVersions() ([]string, error) {
 	// URL of the version manifest containing all Minecraft neoforge versions
 	const url = "https://maven.neoforged.net/releases/net/neoforged/neoforge/maven-metadata.xml"
 
@@ -40,7 +37,7 @@ func Versions(latestFirst bool) ([]string, error) {
 	}
 
 	// Decode the XML response into the provided variable
-	var versionData neoforgeVersionManifest
+	var versionData versionManifest
 	if err := xml.NewDecoder(response.Body).Decode(&versionData); err != nil {
 		return nil, fmt.Errorf("failed to decode XML from %s: %w", url, err)
 	}
@@ -73,11 +70,6 @@ func Versions(latestFirst bool) ([]string, error) {
 			versionSet[gameVersion] = struct{}{}
 			gameVersions = append(gameVersions, gameVersion)
 		}
-	}
-
-	// Return the versions as-is (lower versions first)
-	if !latestFirst {
-		return gameVersions, nil
 	}
 
 	// Reverse the slice (higher versions first)
