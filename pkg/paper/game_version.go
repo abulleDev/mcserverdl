@@ -6,15 +6,12 @@ import (
 	"net/http"
 )
 
-// Versions fetches the list of all Minecraft paper server versions from the official PaperMC API version manifest.
-//
-// Parameters:
-//   - latestFirst: if true, returns the versions with higher versions first. If false, returns the versions with lower versions first.
+// GameVersions fetches the list of all Minecraft paper server versions from the official PaperMC API version manifest.
 //
 // Returns:
 //   - []string: a slice of Minecraft paper server versions (e.g., "1.16.5", "1.13-pre7").
 //   - error: an error if any HTTP or JSON decoding issues occur.
-func Versions(latestFirst bool) ([]string, error) {
+func (p *Provider) GameVersions() ([]string, error) {
 	// URL of the version manifest containing all Minecraft paper server versions
 	const url = "https://fill.papermc.io/v3/projects/paper"
 
@@ -88,14 +85,5 @@ func Versions(latestFirst bool) ([]string, error) {
 		}
 	}
 
-	// Return the versions as-is (higher versions first)
-	if latestFirst {
-		return versions, nil
-	}
-
-	// Reverse the slice (lower versions first)
-	for i, j := 0, len(versions)-1; i < j; i, j = i+1, j-1 {
-		versions[i], versions[j] = versions[j], versions[i]
-	}
 	return versions, nil
 }

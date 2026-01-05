@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type paperVersionDetailManifest struct {
+type detailManifest struct {
 	Downloads struct {
 		ServerDefault struct {
 			URL string `json:"url"`
@@ -18,14 +18,14 @@ type paperVersionDetailManifest struct {
 //
 // Parameters:
 //   - gameVersion: the Minecraft version string (e.g., "1.16.5", "1.13-pre7").
-//   - buildNumber: the PaperMC build number for the specified version.
+//   - serverVersion: the PaperMC build number for the specified version.
 //
 // Returns:
 //   - string: the direct download URL for the PaperMC server JAR file if the build exists.
 //   - error: an error if the game version or build number is not found, or if any HTTP or JSON decoding issues occur.
-func DownloadURL(gameVersion string, buildNumber int) (string, error) {
+func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error) {
 	// URL to validate the existence of a specific build
-	url := fmt.Sprintf("https://fill.papermc.io/v3/projects/paper/versions/%s/builds/%d", gameVersion, buildNumber)
+	url := fmt.Sprintf("https://fill.papermc.io/v3/projects/paper/versions/%s/builds/%s", gameVersion, serverVersion)
 
 	// Send HTTP GET request to the specified URL
 	response, err := http.Get(url)
@@ -48,13 +48,13 @@ func DownloadURL(gameVersion string, buildNumber int) (string, error) {
 		case "version_not_found":
 			return "", fmt.Errorf("unsupported game version: %s", gameVersion)
 		case "build_not_found":
-			return "", fmt.Errorf("build number %d not found for version %s", buildNumber, gameVersion)
+			return "", fmt.Errorf("build number %s not found for version %s", gameVersion, gameVersion)
 		default:
 			return "", fmt.Errorf("unexpected status %d when fetching JSON from %s", response.StatusCode, url)
 		}
 	case http.StatusOK:
 		// Handle successful response
-		var versionInfo paperVersionDetailManifest
+		var versionInfo detailManifest
 		if err := json.NewDecoder(response.Body).Decode(&versionInfo); err != nil {
 			return "", fmt.Errorf("failed to decode JSON from %s: %w", url, err)
 		}
