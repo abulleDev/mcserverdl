@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/abulleDev/mcserverdl/internal"
-	"github.com/abulleDev/mcserverdl/pkg/vanilla"
+	"github.com/abulleDev/mcserverdl/pkg/provider/vanilla"
 )
 
 // Download downloads the Forge server files to the specified installation directory.

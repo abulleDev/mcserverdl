@@ -1,14 +1,14 @@
-package server_test
+package provider_test
 
 import (
 	"testing"
 
-	"github.com/abulleDev/mcserverdl/pkg/fabric"
-	"github.com/abulleDev/mcserverdl/pkg/forge"
-	"github.com/abulleDev/mcserverdl/pkg/neoforge"
-	"github.com/abulleDev/mcserverdl/pkg/paper"
-	"github.com/abulleDev/mcserverdl/pkg/server"
-	"github.com/abulleDev/mcserverdl/pkg/vanilla"
+	"github.com/abulleDev/mcserverdl/pkg/provider"
+	"github.com/abulleDev/mcserverdl/pkg/provider/fabric"
+	"github.com/abulleDev/mcserverdl/pkg/provider/forge"
+	"github.com/abulleDev/mcserverdl/pkg/provider/neoforge"
+	"github.com/abulleDev/mcserverdl/pkg/provider/paper"
+	"github.com/abulleDev/mcserverdl/pkg/provider/vanilla"
 )
 
 func TestDownloadURL(t *testing.T) {
@@ -16,7 +16,7 @@ func TestDownloadURL(t *testing.T) {
 		providerName      string
 		gameVersion       string
 		serverVersion     string
-		provider          server.Provider
+		provider          provider.Provider
 		expectFetchError  bool
 		expectGameError   bool
 		expectServerError bool

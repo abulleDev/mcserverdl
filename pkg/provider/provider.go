@@ -1,4 +1,4 @@
-package server
+package provider
 
 type Provider interface {
 	GameVersions() ([]string, error)
