@@ -10,6 +10,17 @@ import (
 	"github.com/abulleDev/mcserverdl/pkg/vanilla"
 )
 
+// Download downloads the Forge server files to the specified installation directory.
+// It handles both standard installer JARs and legacy zip patches (which require merging with a vanilla server JAR).
+//
+// Parameters:
+//   - gameVersion: the Minecraft version string (e.g., "1.21.6", "1.7.10-pre4", "1.4").
+//   - serverVersion: the Forge loader version.
+//   - installDir: the directory where the server files will be saved.
+//   - onProgress: a callback function to report download progress.
+//
+// Returns:
+//   - error: an error if the download or patching (for legacy versions) fails.
 func (p *Provider) Download(gameVersion, serverVersion, installDir string, onProgress func(current, total int64)) error {
 	url, err := p.DownloadURL(gameVersion, serverVersion)
 	if err != nil {
