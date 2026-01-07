@@ -15,7 +15,7 @@ import (
 func mockProgress(t *testing.T) func(current, total int64) {
 	var lastCurrent int64
 	return func(current, total int64) {
-		if current <= lastCurrent {
+		if current < lastCurrent {
 			t.Errorf("progress current value did not increase: old=%d, new=%d", lastCurrent, current)
 		}
 		lastCurrent = current

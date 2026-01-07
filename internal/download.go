@@ -60,11 +60,16 @@ func Download(url, path string, onProgress func(current, total int64)) error {
 	}()
 
 	// Copy the response body to file.
-	_, err = io.Copy(out, &ProgressReader{
+	written, err := io.Copy(out, &ProgressReader{
 		Reader:     response.Body,
 		Total:      response.ContentLength, // Get the total size of the file from the Content-Length header.
 		OnProgress: onProgress,
 	})
+
+	// Ensure the final progress is reported, even if the total size was initially unknown.
+	if onProgress != nil {
+		onProgress(written, written)
+	}
 
 	return err
 }
