@@ -1,4 +1,4 @@
-package internal
+package internal_test
 
 import (
 	"fmt"
@@ -7,7 +7,23 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/abulleDev/mcserverdl/internal"
 )
+
+// mockProgress is a helper to verify that the progress callback is invoked.
+func mockProgress(t *testing.T) func(current, total int64) {
+	var lastCurrent int64
+	return func(current, total int64) {
+		if current <= lastCurrent {
+			t.Errorf("progress current value did not increase: old=%d, new=%d", lastCurrent, current)
+		}
+		lastCurrent = current
+		if total != -1 && current > total {
+			t.Errorf("current progress %d exceeds total %d", current, total)
+		}
+	}
+}
 
 func TestDownload(t *testing.T) {
 	// Test data to be served and checked.
@@ -37,7 +53,7 @@ func TestDownload(t *testing.T) {
 		destPath := filepath.Join(tempDir, "test.txt")
 
 		// Call the function to be tested.
-		err := Download(server.URL+"/found", destPath)
+		err := internal.Download(server.URL+"/found", destPath, mockProgress(t))
 		if err != nil {
 			t.Fatalf("expected no error, but got: %v", err)
 		}
@@ -56,7 +72,7 @@ func TestDownload(t *testing.T) {
 		tempDir := t.TempDir()
 		destPath := filepath.Join(tempDir, "test_no_length.txt")
 
-		err := Download(server.URL+"/found-no-length", destPath)
+		err := internal.Download(server.URL+"/found-no-length", destPath, mockProgress(t))
 		if err != nil {
 			t.Fatalf("expected no error, but got: %v", err)
 		}
@@ -75,7 +91,7 @@ func TestDownload(t *testing.T) {
 		tempDir := t.TempDir()
 		destPath := filepath.Join(tempDir, "not_found.txt")
 
-		err := Download(server.URL+"/not-found-path", destPath)
+		err := internal.Download(server.URL+"/not-found-path", destPath, mockProgress(t))
 		if err == nil {
 			t.Fatal("expected an error for 404 response, but got nil")
 		}
@@ -90,7 +106,7 @@ func TestDownload(t *testing.T) {
 		// Use a directory as a path, which should cause os.Create to fail.
 		tempDir := t.TempDir()
 
-		err := Download(server.URL+"/found", tempDir)
+		err := internal.Download(server.URL+"/found", tempDir, mockProgress(t))
 		if err == nil {
 			t.Fatal("expected an error for invalid destination path, but got nil")
 		}
