@@ -21,7 +21,7 @@ func TestServerVersions(t *testing.T) {
 	}{
 		{"Vanilla", "", vanilla.New(), true, true},
 		{"Paper", "1.12.2", paper.New(), false, true},
-		{"Fabric", "", fabric.New(), false, false},
+		{"Fabric", "", fabric.New(), false, true},
 		{"Forge", "1.21.5", forge.New(), false, true},
 		{"NeoForge", "1.21.5", neoforge.New(), false, true},
 	}
