@@ -39,6 +39,10 @@ func (p *Provider) Download(gameVersion, serverVersion, installDir string, onPro
 		vanillaPath := filepath.Join(installDir, "vanilla.jar")
 		finalJarPath := filepath.Join(installDir, "server.jar")
 
+		// Clean up temporary files used during the patching process
+		defer os.Remove(patchPath)
+		defer os.Remove(vanillaPath)
+
 		// Download the patch file
 		if err := internal.Download(url, patchPath, onProgress); err != nil {
 			return err
@@ -57,10 +61,6 @@ func (p *Provider) Download(gameVersion, serverVersion, installDir string, onPro
 		if err := internal.MergeZips(vanillaPath, patchPath, finalJarPath); err != nil {
 			return err
 		}
-
-		// Clean path files
-		defer os.Remove(patchPath)
-		defer os.Remove(vanillaPath)
 	} else {
 		return fmt.Errorf("unexpected URL format: %s", url)
 	}
