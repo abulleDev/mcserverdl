@@ -28,6 +28,7 @@ func TestServerVersions(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.providerName, func(t *testing.T) {
+			t.Parallel()
 			t.Run("fetch support server versions", func(t *testing.T) {
 				versions, err := tc.provider.ServerVersions(tc.gameVersion)
 				if tc.expectFetchError {

@@ -28,6 +28,8 @@ func TestDownload(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.providerName, func(t *testing.T) {
+			t.Parallel()
+
 			installDir := t.TempDir()
 
 			err := tc.provider.Download(tc.gameVersion, tc.serverVersion, installDir, nil)

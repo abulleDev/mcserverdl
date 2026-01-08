@@ -30,6 +30,7 @@ func TestDownloadURL(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.providerName, func(t *testing.T) {
+			t.Parallel()
 			t.Run("fetch server download url of valid version", func(t *testing.T) {
 				_, err := tc.provider.DownloadURL(tc.gameVersion, tc.serverVersion)
 				if tc.expectFetchError {
