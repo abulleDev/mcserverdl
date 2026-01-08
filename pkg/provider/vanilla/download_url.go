@@ -24,6 +24,8 @@ type detailManifest struct {
 //   - string: the direct download URL for the server JAR file.
 //   - error: an error if the version is not found or if any HTTP or JSON decoding issues occur.
 func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error) {
+	p.Log("Fetching download URL for Vanilla Minecraft %s...", gameVersion)
+
 	// URL of the version manifest containing all Minecraft vanilla versions
 	const url = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 
@@ -47,6 +49,8 @@ func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error
 		return "", fmt.Errorf("unsupported game version: %s", gameVersion)
 	}
 
+	p.Log("Fetching version details...")
+
 	// Fetch and decode the version detail manifest
 	var detailData detailManifest
 	if err := internal.FetchJSON(detailURL, &detailData); err != nil {
@@ -59,5 +63,7 @@ func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error
 	}
 
 	// Return the server JAR download URL
-	return detailData.Downloads.Server.URL, nil
+	serverURL := detailData.Downloads.Server.URL
+	p.Log("Fetched vanilla download URL: %s", serverURL)
+	return serverURL, nil
 }

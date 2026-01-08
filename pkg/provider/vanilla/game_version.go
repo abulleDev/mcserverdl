@@ -17,6 +17,8 @@ type versionManifest struct {
 //   - []string: a slice of Minecraft versions (e.g., "1.16.5", "15w14a", "1.18-pre2").
 //   - error: an error if any HTTP or JSON decoding issues occur.
 func (p *Provider) GameVersions() ([]string, error) {
+	p.Log("Fetching supported Vanilla game versions...")
+
 	// URL of the version manifest containing all Minecraft vanilla versions
 	const url = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 
@@ -30,6 +32,8 @@ func (p *Provider) GameVersions() ([]string, error) {
 	for _, version := range versionData.Versions {
 		versions = append(versions, version.ID)
 	}
+
+	p.Log("Fetched %d vanilla game versions", len(versions))
 
 	return versions, nil
 }

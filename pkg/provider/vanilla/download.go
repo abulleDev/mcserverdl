@@ -22,6 +22,12 @@ func (p *Provider) Download(gameVersion, serverVersion, installDir string, onPro
 		return err
 	}
 
+	p.Log("Downloading server...")
+
 	serverJarPath := filepath.Join(installDir, "server.jar")
-	return internal.Download(url, serverJarPath, onProgress)
+	err = internal.Download(url, serverJarPath, onProgress)
+
+	p.Log("Successfully downloaded server to %s", installDir)
+
+	return err
 }
