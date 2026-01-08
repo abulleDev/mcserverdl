@@ -13,6 +13,10 @@ import (
 )
 
 func TestDownload(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping download test in short mode")
+	}
+
 	testCases := []struct {
 		providerName  string
 		gameVersion   string
