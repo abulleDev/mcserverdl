@@ -2,7 +2,7 @@ package fabric
 
 import (
 	"fmt"
-	"slices"
+	"net/http"
 
 	"github.com/abulleDev/mcserverdl/internal"
 )
@@ -21,34 +21,44 @@ type installerVersionManifest []struct {
 //   - string: the direct download URL for the Fabric server JAR file if the versions exist.
 //   - error: an error if the game version or loader version is not found, or if any HTTP or JSON decoding issues occur.
 func (p *Provider) DownloadURL(gameVersion string, serverVersion string) (string, error) {
-	// Fetch all supported game versions
-	gameVersions, err := p.GameVersions()
+	// Check Fabric support for the given game version
+	checkGameURL := fmt.Sprintf("https://meta2.fabricmc.net/v2/versions/loader/%s", gameVersion)
+	response, err := http.Get(checkGameURL)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to validate game version: %w", err)
+	}
+	response.Body.Close()
+
+	switch response.StatusCode {
+	case http.StatusOK:
+		// Game version is supported
+	case http.StatusBadRequest:
+		return "", fmt.Errorf("unsupported game version: %s", gameVersion)
+	default:
+		return "", fmt.Errorf("unexpected status %d while validating game version: %s", response.StatusCode, gameVersion)
 	}
 
-	// Check if gameVersion exists in gameVersions
-	gameVersionFound := slices.Contains(gameVersions, gameVersion)
-	if !gameVersionFound {
-		return "", fmt.Errorf("game version %s not found", gameVersion)
-	}
-
-	// Fetch all supported loader versions
-	loaderVersions, err := p.ServerVersions(gameVersion)
+	// Check Fabric support for the given server version
+	checkServerURL := fmt.Sprintf("https://meta2.fabricmc.net/v2/versions/loader/%s/%s", gameVersion, serverVersion)
+	response, err = http.Get(checkServerURL)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to validate server version: %w", err)
 	}
+	response.Body.Close()
 
-	// Check if loaderVersion exists in loaderVersions
-	loaderVersionFound := slices.Contains(loaderVersions, serverVersion)
-	if !loaderVersionFound {
-		return "", fmt.Errorf("loader version %s not found", serverVersion)
+	switch response.StatusCode {
+	case http.StatusOK:
+		// Server version is supported
+	case http.StatusBadRequest:
+		return "", fmt.Errorf("unsupported server version: %s", serverVersion)
+	default:
+		return "", fmt.Errorf("unexpected status %d while validating server version: %s", response.StatusCode, serverVersion)
 	}
 
 	// Fetch all available installer versions
-	const url = "https://meta2.fabricmc.net/v2/versions/installer"
+	const installerURL = "https://meta2.fabricmc.net/v2/versions/installer"
 	var installerData installerVersionManifest
-	if err := internal.FetchJSON(url, &installerData); err != nil {
+	if err := internal.FetchJSON(installerURL, &installerData); err != nil {
 		return "", err
 	}
 
