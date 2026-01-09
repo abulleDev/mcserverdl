@@ -18,6 +18,8 @@ import (
 //   - string: the direct download URL for the Forge server installer/archive file if the versions exist.
 //   - error: an error if the game version or loader version is not found, or if any HTTP or JSON decoding issues occur.
 func (p *Provider) DownloadURL(gameVersion string, serverVersion string) (string, error) {
+	p.Log("Fetching download URL for Forge %s loader %s...", gameVersion, serverVersion)
+
 	// URL of the version manifest containing all Minecraft forge versions
 	const url = "https://files.minecraftforge.net/net/minecraftforge/forge/maven-metadata.json"
 
@@ -48,6 +50,7 @@ func (p *Provider) DownloadURL(gameVersion string, serverVersion string) (string
 	for i := len(rawLoaderVersions) - 1; i >= 0; i-- {
 		// Extract the loader version from the raw string (e.g., "1.7.10-10.13.3.1401-1710ls" -> "10.13.3.1401")
 		if strings.Split(rawLoaderVersions[i], "-")[1] == serverVersion {
+			var serverURL string
 			// The file extension varies depending on the game version
 			switch gameVersion {
 			case
@@ -63,18 +66,21 @@ func (p *Provider) DownloadURL(gameVersion string, serverVersion string) (string
 				"1.4.0",
 				"1.3.2":
 				// Older versions use "universal.zip"
-				return fmt.Sprintf("https://maven.minecraftforge.net/net/minecraftforge/forge/%s/forge-%s-universal.zip", rawLoaderVersions[i], rawLoaderVersions[i]), nil
+				serverURL = fmt.Sprintf("https://maven.minecraftforge.net/net/minecraftforge/forge/%s/forge-%s-universal.zip", rawLoaderVersions[i], rawLoaderVersions[i])
 			case
 				"1.2.5",
 				"1.2.4",
 				"1.2.3",
 				"1.1":
 				// Very old versions use "server.zip"
-				return fmt.Sprintf("https://maven.minecraftforge.net/net/minecraftforge/forge/%s/forge-%s-server.zip", rawLoaderVersions[i], rawLoaderVersions[i]), nil
+				serverURL = fmt.Sprintf("https://maven.minecraftforge.net/net/minecraftforge/forge/%s/forge-%s-server.zip", rawLoaderVersions[i], rawLoaderVersions[i])
 			default:
 				// Modern versions use "installer.jar"
-				return fmt.Sprintf("https://maven.minecraftforge.net/net/minecraftforge/forge/%s/forge-%s-installer.jar", rawLoaderVersions[i], rawLoaderVersions[i]), nil
+				serverURL = fmt.Sprintf("https://maven.minecraftforge.net/net/minecraftforge/forge/%s/forge-%s-installer.jar", rawLoaderVersions[i], rawLoaderVersions[i])
 			}
+
+			p.Log("Fetched Forge download URL: %s", serverURL)
+			return serverURL, nil
 		}
 	}
 

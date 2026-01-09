@@ -17,6 +17,8 @@ import (
 //   - []string: a slice of Forge loader versions (e.g., "56.0.3", "14.23.4.2720").
 //   - error: an error if the game version is not supported or if any HTTP or JSON decoding issues occur.
 func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
+	p.Log("Fetching Forge server versions (loaders) for %s...", gameVersion)
+
 	// URL of the version manifest containing all Minecraft forge versions
 	const url = "https://files.minecraftforge.net/net/minecraftforge/forge/maven-metadata.json"
 
@@ -50,5 +52,6 @@ func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
 		refinedLoadersVersions = append(refinedLoadersVersions, strings.Split(rawLoaderVersions[i], "-")[1])
 	}
 
+	p.Log("Fetched %d Forge loader versions for %s", len(refinedLoadersVersions), gameVersion)
 	return refinedLoadersVersions, nil
 }

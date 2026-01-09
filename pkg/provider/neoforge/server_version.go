@@ -17,6 +17,8 @@ import (
 //   - []string: a slice of NeoForge loader versions (e.g., "21.0.142-beta", "0.25w14craftmine.5-beta").
 //   - error: an error if the game version is not supported or if any HTTP or XML decoding issues occur.
 func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
+	p.Log("Fetching NeoForge server versions (loaders) for %s...", gameVersion)
+
 	// URL of the version manifest containing all Minecraft neoforge versions
 	const url = "https://maven.neoforged.net/releases/net/neoforged/neoforge/maven-metadata.xml"
 
@@ -73,5 +75,7 @@ func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
 	for i, j := 0, len(matchingLoaderVersions)-1; i < j; i, j = i+1, j-1 {
 		matchingLoaderVersions[i], matchingLoaderVersions[j] = matchingLoaderVersions[j], matchingLoaderVersions[i]
 	}
+
+	p.Log("Fetched %d NeoForge loader versions for %s", len(matchingLoaderVersions), gameVersion)
 	return matchingLoaderVersions, nil
 }

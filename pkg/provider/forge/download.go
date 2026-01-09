@@ -29,10 +29,13 @@ func (p *Provider) Download(gameVersion, serverVersion, installDir string, onPro
 
 	if strings.HasSuffix(url, ".jar") {
 		// Case 1: The URL points to a standard installer JAR
+		p.Log("Downloading Forge installer...")
 		installerPath := filepath.Join(installDir, "installer.jar")
 		if err := internal.Download(url, installerPath, onProgress); err != nil {
 			return err
 		}
+		p.Log("Installer downloaded. Please run the following command in the installation directory to complete the server setup:")
+		p.Log("java -jar installer.jar --installServer")
 	} else if strings.HasSuffix(url, ".zip") {
 		// Case 2: The URL points to a patch file that needs to be applied to a vanilla server
 		patchPath := filepath.Join(installDir, "patch.zip")
@@ -44,11 +47,14 @@ func (p *Provider) Download(gameVersion, serverVersion, installDir string, onPro
 		defer os.Remove(vanillaPath)
 
 		// Download the patch file
+		p.Log("Downloading Forge patch file...")
 		if err := internal.Download(url, patchPath, onProgress); err != nil {
 			return err
 		}
+		p.Log("Download complete!")
 
 		// Download the corresponding vanilla server JAR
+		p.Log("Downloading vanilla server for %s...", gameVersion)
 		vanillaURL, err := vanilla.New().DownloadURL(gameVersion, "")
 		if err != nil {
 			return err
@@ -56,11 +62,14 @@ func (p *Provider) Download(gameVersion, serverVersion, installDir string, onPro
 		if err := internal.Download(vanillaURL, vanillaPath, onProgress); err != nil {
 			return err
 		}
+		p.Log("Download complete!")
 
 		// Patch the server
+		p.Log("Patching vanilla server...")
 		if err := internal.MergeZips(vanillaPath, patchPath, finalJarPath); err != nil {
 			return err
 		}
+		p.Log("Successfully created Forge server to %s", installDir)
 	} else {
 		return fmt.Errorf("unexpected URL format: %s", url)
 	}

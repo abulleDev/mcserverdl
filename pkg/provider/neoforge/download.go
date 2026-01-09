@@ -22,6 +22,13 @@ func (p *Provider) Download(gameVersion, serverVersion, installDir string, onPro
 		return err
 	}
 
+	p.Log("Downloading NeoForge installer...")
+
 	serverJarPath := filepath.Join(installDir, "installer.jar")
-	return internal.Download(url, serverJarPath, onProgress)
+	err = internal.Download(url, serverJarPath, onProgress)
+
+	p.Log("Installer downloaded. Please run the following command in the installation directory to complete the server setup:")
+	p.Log("java -jar installer.jar --installServer")
+
+	return err
 }

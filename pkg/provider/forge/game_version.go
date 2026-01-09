@@ -13,6 +13,8 @@ import (
 //   - []string: a slice of Minecraft versions supported by Forge (e.g., "1.21.6", "1.7.10-pre4", "1.4").
 //   - error: an error if any HTTP or JSON decoding issues occur.
 func (p *Provider) GameVersions() ([]string, error) {
+	p.Log("Fetching supported Forge game versions...")
+
 	// URL of the version manifest containing all Minecraft forge versions
 	const url = "https://files.minecraftforge.net/net/minecraftforge/forge/maven-metadata.json"
 
@@ -49,5 +51,7 @@ func (p *Provider) GameVersions() ([]string, error) {
 	for i := len(versionData) - 1; i >= 0; i-- {
 		versions = append(versions, versionData[i])
 	}
+
+	p.Log("Fetched %d Forge game versions", len(versions))
 	return versions, nil
 }

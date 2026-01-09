@@ -16,6 +16,8 @@ import (
 //   - string: the direct download URL for the NeoForge server installer/archive file if the versions exist.
 //   - error: an error if the game version or loader version is not found, or if any HTTP or XML decoding issues occur.
 func (p *Provider) DownloadURL(gameVersion string, serverVersion string) (string, error) {
+	p.Log("Fetching download URL for NeoForge %s loader %s...", gameVersion, serverVersion)
+
 	// Fetch all available loader versions for the given game version.
 	loaderVersions, err := p.ServerVersions(gameVersion)
 	if err != nil {
@@ -27,5 +29,7 @@ func (p *Provider) DownloadURL(gameVersion string, serverVersion string) (string
 		return "", fmt.Errorf("loader version %s not found for version %s", serverVersion, gameVersion)
 	}
 
-	return fmt.Sprintf("https://maven.neoforged.net/releases/net/neoforged/neoforge/%s/neoforge-%s-installer.jar", serverVersion, serverVersion), nil
+	serverURL := fmt.Sprintf("https://maven.neoforged.net/releases/net/neoforged/neoforge/%s/neoforge-%s-installer.jar", serverVersion, serverVersion)
+	p.Log("Fetched NeoForge download URL: %s", serverURL)
+	return serverURL, nil
 }

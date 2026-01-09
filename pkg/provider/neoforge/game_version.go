@@ -21,8 +21,12 @@ type versionManifest struct {
 //   - []string: a slice of Minecraft versions supported by NeoForge (e.g., "1.21.6", "25w14craftmine", "1.21").
 //   - error: an error if any HTTP or XML decoding issues occur.
 func (p *Provider) GameVersions() ([]string, error) {
+	p.Log("Fetching supported NeoForge game versions...")
+
 	// URL of the version manifest containing all Minecraft neoforge versions
 	const url = "https://maven.neoforged.net/releases/net/neoforged/neoforge/maven-metadata.xml"
+
+	p.Log("Fetching NeoForge-supported game versions...")
 
 	// Send HTTP GET request to the specified URL
 	response, err := http.Get(url)
@@ -76,5 +80,7 @@ func (p *Provider) GameVersions() ([]string, error) {
 	for i, j := 0, len(gameVersions)-1; i < j; i, j = i+1, j-1 {
 		gameVersions[i], gameVersions[j] = gameVersions[j], gameVersions[i]
 	}
+
+	p.Log("Fetched %d NeoForge game versions", len(gameVersions))
 	return gameVersions, nil
 }
