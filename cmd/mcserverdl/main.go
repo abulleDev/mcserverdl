@@ -18,9 +18,16 @@ func main() {
 	gameVersion := flag.String("game", "", "Game version (e.g., 1.21.6, 1.13-pre7, 25w14craftmine)")
 	serverVersion := flag.String("server", "", "Loader/build version (default latest)")
 	path := flag.String("path", "./", "Download path for the server jar")
+	showVersion := flag.Bool("version", false, "Print the current version")
 
 	// Parse the provided command-line flags.
 	flag.Parse()
+
+	// If version flag is set, print version and exit.
+	if *showVersion {
+		logger.Println("mcserverdl v2.0.0")
+		return
+	}
 
 	// Validate mandatory flags (type and game version).
 	if *serverType == "" || *gameVersion == "" {
