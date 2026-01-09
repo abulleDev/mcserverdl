@@ -21,6 +21,8 @@ type loaderVersionManifest []struct {
 //   - []string: a slice of Fabric loader versions (e.g., "0.16.14", "0.15.11").
 //   - error: an error if the game version is not supported or if any HTTP or JSON decoding issues occur.
 func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
+	p.Log("Fetching Fabric server versions (loaders) for %s...", gameVersion)
+
 	// Check Fabric support for the given version
 	// This avoids downloading the large JSON body when we only need to check existence
 	checkURL := fmt.Sprintf("https://meta2.fabricmc.net/v2/versions/loader/%s", gameVersion)
@@ -53,6 +55,8 @@ func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
 	for _, version := range loaderData {
 		versions = append(versions, version.Version)
 	}
+
+	p.Log("Fetched %d Fabric loader versions", len(versions))
 
 	return versions, nil
 }

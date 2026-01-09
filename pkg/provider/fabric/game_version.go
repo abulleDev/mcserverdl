@@ -12,6 +12,8 @@ type versionManifest []struct {
 //   - []string: a slice of Minecraft versions supported by Fabric (e.g., "1.20.5", "1.18-pre2", "20w51a").
 //   - error: an error if any HTTP or JSON decoding issues occur.
 func (p *Provider) GameVersions() ([]string, error) {
+	p.Log("Fetching supported Fabric game versions...")
+
 	// URL of the version manifest containing all Minecraft fabric versions
 	const url = "https://meta2.fabricmc.net/v2/versions/game"
 
@@ -26,6 +28,8 @@ func (p *Provider) GameVersions() ([]string, error) {
 	for _, version := range versionData {
 		versions = append(versions, version.Version)
 	}
+
+	p.Log("Fetched %d Fabric game versions", len(versions))
 
 	return versions, nil
 }
