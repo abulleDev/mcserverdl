@@ -33,12 +33,13 @@ mcserverdl -type <server_type> -game <game_version> [flags]
 
 ### Command-line Flags
 
-| Flag      | Description                                                                                             | Required |
-| :-------- | :------------------------------------------------------------------------------------------------------ | :------- |
-| `-type`   | The type of server. Supported: `vanilla`, `paper`, `forge`, `fabric`, `neoforge`.                       | **Yes**  |
-| `-game`   | The Minecraft game version (e.g., `1.21`).                                                              | **Yes**  |
-| `-server` | The version of the mod loader or the build number for Paper. Defaults to the latest version if omitted. | No       |
-| `-path`   | The directory where the server will be installed. Defaults to the current directory (`.`).              | No       |
+| Flag       | Description                                                                                             | Required |
+| :--------- | :------------------------------------------------------------------------------------------------------ | :------- |
+| `-type`    | The type of server. Supported: `vanilla`, `paper`, `forge`, `fabric`, `neoforge`.                       | **Yes**  |
+| `-game`    | The Minecraft game version (e.g., `1.21`).                                                              | **Yes**  |
+| `-server`  | The version of the mod loader or the build number for Paper. Defaults to the latest version if omitted. | No       |
+| `-path`    | The directory where the server will be installed. Defaults to the current directory (`.`).              | No       |
+| `-version` | Prints the current version of the tool.                                                                 | No       |
 
 ### Examples
 
