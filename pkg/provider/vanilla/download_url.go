@@ -59,7 +59,7 @@ func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error
 
 	// Return an error if the server download is not available
 	if detailData.Downloads.Server == nil {
-		return "", fmt.Errorf("unsupported game version: %s", gameVersion)
+		return "", fmt.Errorf("server download not available for version %s", gameVersion)
 	}
 
 	// Return the server JAR download URL
