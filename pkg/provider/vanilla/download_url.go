@@ -3,7 +3,7 @@ package vanilla
 import (
 	"fmt"
 
-	"github.com/abulleDev/mcserverdl/internal"
+	"github.com/abulleDev/mcserverdl/v2/internal"
 )
 
 type detailManifest struct {

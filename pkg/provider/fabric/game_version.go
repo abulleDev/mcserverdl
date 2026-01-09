@@ -1,6 +1,6 @@
 package fabric
 
-import "github.com/abulleDev/mcserverdl/internal"
+import "github.com/abulleDev/mcserverdl/v2/internal"
 
 type versionManifest []struct {
 	Version string `json:"version"`

@@ -3,12 +3,12 @@ package factory
 import (
 	"fmt"
 
-	"github.com/abulleDev/mcserverdl/pkg/provider"
-	"github.com/abulleDev/mcserverdl/pkg/provider/fabric"
-	"github.com/abulleDev/mcserverdl/pkg/provider/forge"
-	"github.com/abulleDev/mcserverdl/pkg/provider/neoforge"
-	"github.com/abulleDev/mcserverdl/pkg/provider/paper"
-	"github.com/abulleDev/mcserverdl/pkg/provider/vanilla"
+	"github.com/abulleDev/mcserverdl/v2/pkg/provider"
+	"github.com/abulleDev/mcserverdl/v2/pkg/provider/fabric"
+	"github.com/abulleDev/mcserverdl/v2/pkg/provider/forge"
+	"github.com/abulleDev/mcserverdl/v2/pkg/provider/neoforge"
+	"github.com/abulleDev/mcserverdl/v2/pkg/provider/paper"
+	"github.com/abulleDev/mcserverdl/v2/pkg/provider/vanilla"
 )
 
 func New(serverType string) (provider.Provider, error) {

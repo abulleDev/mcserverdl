@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/abulleDev/mcserverdl/internal"
+	"github.com/abulleDev/mcserverdl/v2/internal"
 )
 
 // mockProgress is a helper to verify that the progress callback is invoked.

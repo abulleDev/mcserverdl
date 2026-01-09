@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/abulleDev/mcserverdl/internal"
+	"github.com/abulleDev/mcserverdl/v2/internal"
 )
 
 type loaderVersionManifest []struct {

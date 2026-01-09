@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/abulleDev/mcserverdl/internal"
+	"github.com/abulleDev/mcserverdl/v2/internal"
 )
 
 // DownloadURL returns the download URL for the Forge server file for a given game version and loader version.

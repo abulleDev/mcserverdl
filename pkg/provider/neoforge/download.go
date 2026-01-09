@@ -3,7 +3,7 @@ package neoforge
 import (
 	"path/filepath"
 
-	"github.com/abulleDev/mcserverdl/internal"
+	"github.com/abulleDev/mcserverdl/v2/internal"
 )
 
 // Download downloads the NeoForge installer JAR to the specified installation directory.

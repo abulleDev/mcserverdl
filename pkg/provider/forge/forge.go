@@ -1,6 +1,6 @@
 package forge
 
-import "github.com/abulleDev/mcserverdl/pkg/provider"
+import "github.com/abulleDev/mcserverdl/v2/pkg/provider"
 
 type Provider struct {
 	provider.BaseProvider
