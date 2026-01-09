@@ -2,189 +2,91 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
 
-	"github.com/abulleDev/mcserverdl/cmd/mcserverdl/internal"
-	"github.com/abulleDev/mcserverdl/pkg/fabric"
-	"github.com/abulleDev/mcserverdl/pkg/forge"
-	"github.com/abulleDev/mcserverdl/pkg/neoforge"
-	"github.com/abulleDev/mcserverdl/pkg/paper"
-	"github.com/abulleDev/mcserverdl/pkg/vanilla"
+	"github.com/abulleDev/mcserverdl/v2/pkg/factory"
 )
 
 func main() {
-	// Disable timestamp and other log prefixes
-	log.SetFlags(0)
+	// Initialize a logger that writes to stdout without timestamps/prefixes.
+	logger := log.New(os.Stdout, "", 0)
 
-	// Define command-line flags
+	// Define command-line flags for server configuration.
 	serverType := flag.String("type", "", "Server type (vanilla, paper, forge, fabric, neoforge)")
 	gameVersion := flag.String("game", "", "Game version (e.g., 1.21.6, 1.13-pre7, 25w14craftmine)")
-	loaderVersion := flag.String("loader", "", "Loader/build version (default latest)")
+	serverVersion := flag.String("server", "", "Loader/build version (default latest)")
 	path := flag.String("path", "./", "Download path for the server jar")
 
-	// Parse the flags
+	// Parse the provided command-line flags.
 	flag.Parse()
 
-	// Validate required flags
+	// Validate mandatory flags (type and game version).
 	if *serverType == "" || *gameVersion == "" {
-		log.Println("Usage:")
+		logger.Println("Usage:")
 		flag.PrintDefaults()
 		return
 	}
 
-	// Check if the path is not a file
+	// Validate the download path.
+	// We check if the path exists and ensure it is not a file.
 	info, err := os.Stat(*path)
-	if err == nil {
-		// Check if it is a file
-		if !info.IsDir() {
-			log.Fatalf("Error: The specified path '%s' is an existing file. Please provide a directory path", *path)
-		}
-		// If it is a directory, proceed.
-	} else {
-		// An error occurred. Check if it is a "not exist" error
-		if !os.IsNotExist(err) {
-			log.Fatalf("Error checking path '%s': %v", *path, err)
-		}
+	if err == nil && !info.IsDir() {
+		// The path exists but is a file, which is invalid for a directory argument.
+		logger.Fatalf("Error: The specified path '%s' is an existing file. Please provide a directory path", *path)
 	}
-
-	var url string
-
-	// Call the appropriate download URL function based on the server type
-	switch *serverType {
-	case "vanilla":
-		url, err = vanilla.DownloadURL(*gameVersion)
-	case "paper":
-		var build int
-		if *loaderVersion == "" {
-			log.Printf("No build number specified, searching for the latest for %s...", *gameVersion)
-			builds, err := paper.Builds(*gameVersion, true)
-			if err != nil {
-				log.Fatalf("Error fetching latest paper build: %v", err)
-			}
-			build = builds[0]
-			log.Printf("Latest paper build number is %d", build)
-		} else {
-			build, err = strconv.Atoi(*loaderVersion)
-			if err != nil {
-				log.Fatalf("Error: invalid build number for paper: %v", err)
-			}
-		}
-		url, err = paper.DownloadURL(*gameVersion, build)
-	case "forge":
-		if *loaderVersion == "" {
-			log.Printf("No loader version specified, searching for the latest for %s...", *gameVersion)
-			loaders, err := forge.Loaders(*gameVersion, true)
-			if err != nil {
-				log.Fatalf("Error fetching latest forge loader: %v", err)
-			}
-			*loaderVersion = loaders[0]
-			log.Printf("Latest forge loader version is %s", *loaderVersion)
-		}
-		url, err = forge.DownloadURL(*gameVersion, *loaderVersion)
-	case "fabric":
-		if *loaderVersion == "" {
-			log.Printf("No loader version specified, searching for the latest...")
-			loaders, err := fabric.Loaders(true)
-			if err != nil {
-				log.Fatalf("Error fetching latest fabric loader: %v", err)
-			}
-			*loaderVersion = loaders[0]
-			log.Printf("Latest fabric loader version is %s", *loaderVersion)
-		}
-		url, err = fabric.DownloadURL(*gameVersion, *loaderVersion)
-	case "neoforge":
-		if *loaderVersion == "" {
-			log.Printf("No loader version specified, searching for the latest for %s...", *gameVersion)
-			loaders, err := neoforge.Loaders(*gameVersion, true)
-			if err != nil {
-				log.Fatalf("Error fetching latest neoforge loader: %v", err)
-			}
-			*loaderVersion = loaders[0]
-			log.Printf("Latest neoforge loader version is %s", *loaderVersion)
-		}
-		url, err = neoforge.DownloadURL(*gameVersion, *loaderVersion)
-	default:
-		log.Fatalf("Error: Unknown server type '%s'", *serverType)
+	if err != nil && !os.IsNotExist(err) {
+		// Handle system errors (e.g., permission denied) during path checks.
+		logger.Fatalf("Error checking path '%s': %v", *path, err)
 	}
+	// If the path does not exist, it will be created later via MkdirAll.
 
-	// Handle errors and print the result
+	// Initialize the appropriate server provider using the factory.
+	provider, err := factory.New(*serverType)
 	if err != nil {
-		log.Fatalf("Error: %v", err)
+		logger.Fatalf("Error: %v", err)
 	}
 
-	// Create target directory
+	// Set the logger for the provider to allow consistent logging.
+	provider.SetLogger(logger)
+
+	// If server version is not provided, automatically fetch the latest version.
+	// Note: Vanilla is excluded here as its logic is handled differently (usually 1:1 with game version).
+	if *serverVersion == "" && *serverType != "vanilla" {
+		logger.Printf("No server version specified, fetching the latest for %s...", *gameVersion)
+		serverVersions, err := provider.ServerVersions(*gameVersion)
+		if err != nil {
+			logger.Fatalf("Error fetching latest %s server version: %v", *serverType, err)
+		}
+		if len(serverVersions) == 0 {
+			logger.Fatalf("Error: No server versions found for game version %s", *gameVersion)
+		}
+		*serverVersion = serverVersions[0]
+		logger.Printf("Latest %s server version is %s", *serverType, *serverVersion)
+	}
+
+	// Create the target directory if it doesn't exist.
 	if err := os.MkdirAll(*path, 0755); err != nil {
-		log.Fatalf("Error: %v", err)
+		logger.Fatalf("Error: %v", err)
 	}
 
-	// The final installation/download logic depends on the server type
-	switch *serverType {
-	case "forge":
-		if strings.HasSuffix(url, ".jar") {
-			// Case 1: The URL points to a standard installer JAR
-			installerPath := filepath.Join(*path, "installer.jar")
-			log.Printf("Downloading Forge installer from %s...", url)
-			if err := internal.Download(url, installerPath); err != nil {
-				log.Fatalf("Error downloading installer: %v", err)
-			}
-			log.Println("Installer downloaded. Please run the following command in the installation directory to complete the server setup:")
-			log.Println("java -jar installer.jar --installServer")
-		} else if strings.HasSuffix(url, ".zip") {
-			// Case 2: The URL points to a patch file that needs to be applied to a vanilla server
-			patchPath := filepath.Join(*path, "patch.zip")
-			vanillaPath := filepath.Join(*path, "vanilla.jar")
-			finalJarPath := filepath.Join(*path, "server.jar")
-
-			// Download the patch file
-			log.Printf("Downloading Forge patch file from %s...", url)
-			if err := internal.Download(url, patchPath); err != nil {
-				log.Fatalf("Error downloading patch file: %v", err)
-			}
-
-			// Download the corresponding vanilla server JAR
-			log.Printf("Downloading vanilla server for %s...", *gameVersion)
-			vanillaURL, err := vanilla.DownloadURL(*gameVersion)
-			if err != nil {
-				log.Fatalf("Error getting vanilla download URL: %v", err)
-			}
-			if err := internal.Download(vanillaURL, vanillaPath); err != nil {
-				log.Fatalf("Error downloading vanilla server: %v", err)
-			}
-
-			// Patch the server
-			log.Println("Patching vanilla server...")
-
-			if err := internal.MergeZips(vanillaPath, patchPath, finalJarPath); err != nil {
-				log.Fatalf("Error: %v", err)
-			}
-
-			defer os.Remove(patchPath)
-			defer os.Remove(vanillaPath)
-
-			log.Printf("Successfully created Forge server to %s", *path)
+	// Execute the download process with a progress callback.
+	err = provider.Download(*gameVersion, *serverVersion, *path, func(current, total int64) {
+		if total > 0 {
+			// If total size is known, display percentage progress.
+			fmt.Printf("\rDownloading... %.2f%%", float64(current)/float64(total)*100)
 		} else {
-			log.Fatalf("Unexpected URL format")
+			// Fallback for when total size is unknown.
+			fmt.Print("\rDownloading...")
 		}
-	case "neoforge":
-		// Download and install the server automatically
-		installerPath := filepath.Join(*path, "installer.jar")
-		log.Printf("Downloading NeoForge installer from %s...", url)
-		if err := internal.Download(url, installerPath); err != nil {
-			log.Fatalf("Error downloading installer: %v", err)
+
+		// Clear the progress line once the download completes.
+		if total == current {
+			fmt.Print("\r\033[K")
 		}
-		log.Println("Installer downloaded. Please run the following command in the installation directory to complete the server setup:")
-		log.Println("java -jar installer.jar --installServer")
-	default:
-		// For all other server types, just download the file
-		finalJarPath := filepath.Join(*path, "server.jar")
-		log.Printf("Downloading server from %s...", url)
-		if err := internal.Download(url, finalJarPath); err != nil {
-			log.Fatalf("Error: %v", err)
-		}
-		log.Printf("Successfully downloaded server to %s", *path)
+	})
+	if err != nil {
+		logger.Fatalf("Error: %v", err)
 	}
 }
