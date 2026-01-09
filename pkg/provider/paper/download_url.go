@@ -24,6 +24,8 @@ type detailManifest struct {
 //   - string: the direct download URL for the PaperMC server JAR file if the build exists.
 //   - error: an error if the game version or build number is not found, or if any HTTP or JSON decoding issues occur.
 func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error) {
+	p.Log("Fetching download URL for Paper %s build %s...", gameVersion, serverVersion)
+
 	// URL to validate the existence of a specific build
 	url := fmt.Sprintf("https://fill.papermc.io/v3/projects/paper/versions/%s/builds/%s", gameVersion, serverVersion)
 
@@ -58,7 +60,10 @@ func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error
 		if err := json.NewDecoder(response.Body).Decode(&versionInfo); err != nil {
 			return "", fmt.Errorf("failed to decode JSON from %s: %w", url, err)
 		}
-		return versionInfo.Downloads.ServerDefault.URL, nil
+
+		serverURL := versionInfo.Downloads.ServerDefault.URL
+		p.Log("Fetched Paper download URL: %s", serverURL)
+		return serverURL, nil
 	default:
 		// Handle other unexpected statuses
 		return "", fmt.Errorf("unexpected status %d when fetching JSON from %s", response.StatusCode, url)

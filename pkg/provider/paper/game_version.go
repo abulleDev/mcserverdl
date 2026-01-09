@@ -12,6 +12,8 @@ import (
 //   - []string: a slice of Minecraft paper server versions (e.g., "1.16.5", "1.13-pre7").
 //   - error: an error if any HTTP or JSON decoding issues occur.
 func (p *Provider) GameVersions() ([]string, error) {
+	p.Log("Fetching supported Paper game versions...")
+
 	// URL of the version manifest containing all Minecraft paper server versions
 	const url = "https://fill.papermc.io/v3/projects/paper"
 
@@ -84,6 +86,8 @@ func (p *Provider) GameVersions() ([]string, error) {
 			}
 		}
 	}
+
+	p.Log("Fetched %d Paper game versions", len(versions))
 
 	return versions, nil
 }

@@ -20,6 +20,8 @@ type buildVersionManifest struct {
 //   - []string: a slice of build numbers for the specified game version.
 //   - error: an error if the game version is not supported or if any HTTP or JSON decoding issues occur.
 func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
+	p.Log("Fetching Paper server versions (builds) for %s...", gameVersion)
+
 	// Build manifest URL for the specified game version
 	url := fmt.Sprintf("https://fill.papermc.io/v3/projects/paper/versions/%s", gameVersion)
 
@@ -34,5 +36,7 @@ func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
 	for _, build := range buildData.Builds {
 		builds = append(builds, strconv.Itoa(build))
 	}
+
+	p.Log("Fetched %d Paper builds for %s", len(builds), gameVersion)
 	return builds, nil
 }
