@@ -20,7 +20,7 @@ A command-line tool and Go library to download and install various Minecraft ser
 To install the command-line tool, use `go install`:
 
 ```shell
-go install github.com/abulleDev/mcserverdl/cmd/mcserverdl@latest
+go install github.com/abulleDev/mcserverdl/v2/cmd/mcserverdl@latest
 ```
 
 ## Usage
@@ -37,7 +37,7 @@ mcserverdl -type <server_type> -game <game_version> [flags]
 | :-------- | :------------------------------------------------------------------------------------------------------ | :------- |
 | `-type`   | The type of server. Supported: `vanilla`, `paper`, `forge`, `fabric`, `neoforge`.                       | **Yes**  |
 | `-game`   | The Minecraft game version (e.g., `1.21`).                                                              | **Yes**  |
-| `-loader` | The version of the mod loader or the build number for Paper. Defaults to the latest version if omitted. | No       |
+| `-server` | The version of the mod loader or the build number for Paper. Defaults to the latest version if omitted. | No       |
 | `-path`   | The directory where the server will be installed. Defaults to the current directory (`.`).              | No       |
 
 ### Examples
@@ -47,10 +47,10 @@ mcserverdl -type <server_type> -game <game_version> [flags]
 mcserverdl -type vanilla -game 1.21
 
 # Download Paper build 14 for Minecraft 1.21 into a folder named "my-paper-server".
-mcserverdl -type paper -game 1.21 -loader 14 -path ./my-paper-server
+mcserverdl -type paper -game 1.21 -server 14 -path ./my-paper-server
 
-# Download and automatically install the latest Forge server for Minecraft 1.21.6.
-mcserverdl -type forge -game 1.21.6
+# Download and automatically install the latest NeoForge server for Minecraft 1.21.6.
+mcserverdl -type neoforge -game 1.21.6
 ```
 
 ## Library Usage
@@ -60,45 +60,118 @@ This project can also be used as a package in your own Go projects.
 First, add the package to your project:
 
 ```shell
-go get github.com/abulleDev/mcserverdl
+go get github.com/abulleDev/mcserverdl/v2
 ```
 
 Then, you can use the functions from the different packages to fetch versions, loaders, and download URLs.
 
 ### Example
 
-This example demonstrates how to get the latest Paper build for a specific game version and then construct its download URL.
+This example demonstrates how to use the factory to get a provider, fetch the available versions, and get the download URL.
 
 ```go
 package main
 
 import (
-    "fmt"
-    "log"
+	"fmt"
+	"log"
 
-    "github.com/abulleDev/mcserverdl/pkg/paper"
+	"github.com/abulleDev/mcserverdl/v2/pkg/factory"
 )
 
 func main() {
-    log.SetFlags(0)
+	log.SetFlags(0)
 
-    gameVersion := "1.21"
-    fmt.Printf("--- Getting latest Paper server for %s ---\n", gameVersion)
+	serverType := "paper" // Can be vanilla, paper, fabric, forge, neoforge
+	gameVersion := "1.21"
 
-    // 1. Get the list of all available builds for the game version.
-    builds, err := paper.Builds(gameVersion, true)
-    if err != nil {
-        log.Fatalf("Failed to get Paper builds for %s: %v", gameVersion, err)
-    }
-    latestBuild := builds[0]
-    fmt.Printf("Latest Paper build for %s: %d\n", gameVersion, latestBuild)
+	// 1. Initialize the provider using the factory.
+	p, err := factory.New(serverType)
+	if err != nil {
+		log.Fatalf("Error creating provider: %v", err)
+	}
 
-    // 2. Get the download URL for that specific build.
-    downloadURL, err := paper.DownloadURL(gameVersion, latestBuild)
-    if err != nil {
-        log.Fatalf("Failed to get Paper download URL: %v", err)
-    }
-    fmt.Printf("Download URL: %s\n", downloadURL)
+	fmt.Printf("--- Getting latest %s server for %s ---\n", serverType, gameVersion)
+
+	// 2. Get the list of all available server versions (builds/loaders) for the game version.
+	// Note: Vanilla server typically determines the version from the game version itself.
+	versions, err := p.ServerVersions(gameVersion)
+	if err != nil {
+		log.Fatalf("Failed to get server versions for %s: %v", gameVersion, err)
+	}
+
+	if len(versions) == 0 {
+		log.Fatal("No server versions found")
+	}
+
+	// Assuming the first version is the latest (provider dependent)
+	latestVersion := versions[0]
+	fmt.Printf("Latest version matches: %s\n", latestVersion)
+
+	// 3. Get the download URL for that specific version.
+	downloadURL, err := p.DownloadURL(gameVersion, latestVersion)
+	if err != nil {
+		log.Fatalf("Failed to get download URL: %v", err)
+	}
+	fmt.Printf("Download URL: %s\n", downloadURL)
+}
+```
+
+### Direct Package Usage
+
+If you only need a specific server type, you can import the provider package directly to reduce dependencies or for simpler usage.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/abulleDev/mcserverdl/v2/pkg/provider/forge"
+)
+
+func main() {
+	// Directly initialize the Forge provider
+	provider := forge.New()
+
+	// Download specific version directly
+	// Arguments: Game Version, Loader Version, Install Path, Progress Callback (nil here)
+	err := provider.Download("1.5.1", "7.7.2.682", "./server", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Forge server installed successfully!")
+}
+```
+
+### Custom Logging
+
+You can inject a custom logger (or the standard one) to see internal logs from the provider, such as fetching status or debug info.
+
+```go
+package main
+
+import (
+	"log"
+	"os"
+
+	"github.com/abulleDev/mcserverdl/v2/pkg/factory"
+)
+
+func main() {
+	// Create a standard logger
+	logger := log.New(os.Stdout, "[MC-DL] ", log.Ltime)
+
+	p, _ := factory.New("fabric")
+
+	// Inject the logger into the provider
+	p.SetLogger(logger)
+
+	// Now operations will log their progress
+	// Output: [MC-DL] 01:06:37 Fetching Fabric server versions (loaders) for 1.20.1...
+	p.ServerVersions("1.20.1")
 }
 ```
 
