@@ -1,4 +1,4 @@
-package internal
+package internal_test
 
 import (
 	"archive/zip"
@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/abulleDev/mcserverdl/v2/internal"
 )
 
 // createTestZip is a helper function to create a zip file with specified content.
@@ -114,7 +116,7 @@ func TestMergeZips(t *testing.T) {
 
 	// Run the function we want to test
 	t.Run("success", func(t *testing.T) {
-		err := MergeZips(context.Background(), baseZipPath, overlayZipPath, outputZipPath)
+		err := internal.MergeZips(context.Background(), baseZipPath, overlayZipPath, outputZipPath)
 		if err != nil {
 			t.Fatalf("MergeZips failed: %v", err)
 		}
@@ -128,7 +130,7 @@ func TestMergeZips(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel() // Cancel immediately
 
-		err := MergeZips(ctx, baseZipPath, overlayZipPath, outputZipPathCancelled)
+		err := internal.MergeZips(ctx, baseZipPath, overlayZipPath, outputZipPathCancelled)
 		if err == nil {
 			t.Fatal("expected error for cancelled merge, but got nil")
 		}

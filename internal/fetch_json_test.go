@@ -1,4 +1,4 @@
-package internal
+package internal_test
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/abulleDev/mcserverdl/v2/internal"
 )
 
 type testJSONStruct struct {
@@ -44,7 +46,7 @@ func TestFetchJSON(t *testing.T) {
 		defer testServer.Close()
 
 		var testJSONData testJSONStruct
-		if err := FetchJSON(context.Background(), testServer.URL, &testJSONData); err != nil {
+		if err := internal.FetchJSON(context.Background(), testServer.URL, &testJSONData); err != nil {
 			t.Fatalf("expected no error, got: %v", err)
 		}
 		if len(testJSONData.Array) != 1 {
@@ -63,7 +65,7 @@ func TestFetchJSON(t *testing.T) {
 		defer testServer.Close()
 
 		var testJSONData testJSONStruct
-		if err := FetchJSON(context.Background(), testServer.URL, &testJSONData); err == nil {
+		if err := internal.FetchJSON(context.Background(), testServer.URL, &testJSONData); err == nil {
 			t.Error("expected error for 404 response, got nil")
 		}
 	})
@@ -77,7 +79,7 @@ func TestFetchJSON(t *testing.T) {
 		defer testServer.Close()
 
 		var testJSONData testJSONStruct
-		if err := FetchJSON(context.Background(), testServer.URL, &testJSONData); err == nil {
+		if err := internal.FetchJSON(context.Background(), testServer.URL, &testJSONData); err == nil {
 			t.Error("expected error for invalid JSON, got nil")
 		}
 	})
@@ -98,7 +100,7 @@ func TestFetchJSON(t *testing.T) {
 		defer testServer.Close()
 
 		var testJSONData testJSONStruct
-		if err := FetchJSON(context.Background(), testServer.URL+"/redirect", &testJSONData); err != nil {
+		if err := internal.FetchJSON(context.Background(), testServer.URL+"/redirect", &testJSONData); err != nil {
 			t.Errorf("expected no error, got: %v", err)
 		}
 	})
@@ -116,7 +118,7 @@ func TestFetchJSON(t *testing.T) {
 		defer cancel()
 
 		var testJSONData testJSONStruct
-		if err := FetchJSON(ctx, testServer.URL, &testJSONData); err == nil {
+		if err := internal.FetchJSON(ctx, testServer.URL, &testJSONData); err == nil {
 			t.Error("expected error for context cancellation, got nil")
 		}
 	})
