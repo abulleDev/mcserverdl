@@ -1,6 +1,7 @@
 package fabric
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -12,21 +13,35 @@ type loaderVersionManifest []struct {
 }
 
 // ServerVersions fetches the list of all available Fabric loader versions from the official FabricMC API.
+// It uses a default background context.
+func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
+	return p.ServerVersionsContext(context.Background(), gameVersion)
+}
+
+// ServerVersionsContext fetches the list of all available Fabric loader versions from the official FabricMC API with context support.
 // It also verifies that the provided game version is supported by Fabric.
 //
 // Parameters:
+//   - ctx: the context to control the request lifetime.
 //   - gameVersion: the Minecraft version string (e.g., "1.21.5", "25w14craftmine", "1.18-pre2").
 //
 // Returns:
 //   - []string: a slice of Fabric loader versions (e.g., "0.16.14", "0.15.11").
 //   - error: an error if the game version is not supported or if any HTTP or JSON decoding issues occur.
-func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
+func (p *Provider) ServerVersionsContext(ctx context.Context, gameVersion string) ([]string, error) {
 	p.Log("Fetching Fabric server versions (loaders) for %s...", gameVersion)
 
 	// Check Fabric support for the given version
 	// This avoids downloading the large JSON body when we only need to check existence
 	checkURL := fmt.Sprintf("https://meta2.fabricmc.net/v2/versions/loader/%s", gameVersion)
-	response, err := http.Get(checkURL)
+
+	// Create request with context
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, checkURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request for %s: %w", checkURL, err)
+	}
+
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate game version: %w", err)
 	}
@@ -46,7 +61,7 @@ func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
 
 	// Fetch and decode JSON the fabric loader manifest
 	var loaderData loaderVersionManifest
-	if err := internal.FetchJSON(url, &loaderData); err != nil {
+	if err := internal.FetchJSON(ctx, url, &loaderData); err != nil {
 		return nil, err
 	}
 
