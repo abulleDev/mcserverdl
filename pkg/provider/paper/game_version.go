@@ -1,24 +1,40 @@
 package paper
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
 // GameVersions fetches the list of all Minecraft paper server versions from the official PaperMC API version manifest.
+// It uses a default background context.
+func (p *Provider) GameVersions() ([]string, error) {
+	return p.GameVersionsContext(context.Background())
+}
+
+// GameVersionsContext fetches the list of all Minecraft paper server versions from the official PaperMC API version manifest with context support.
+//
+// Parameters:
+//   - ctx: the context to control the request lifetime.
 //
 // Returns:
 //   - []string: a slice of Minecraft paper server versions (e.g., "1.16.5", "1.13-pre7").
 //   - error: an error if any HTTP or JSON decoding issues occur.
-func (p *Provider) GameVersions() ([]string, error) {
+func (p *Provider) GameVersionsContext(ctx context.Context) ([]string, error) {
 	p.Log("Fetching supported Paper game versions...")
 
 	// URL of the version manifest containing all Minecraft paper server versions
 	const url = "https://fill.papermc.io/v3/projects/paper"
 
-	// Send HTTP GET request to the specified URL
-	response, err := http.Get(url)
+	// Create a new HTTP request with context
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request for %s: %w", url, err)
+	}
+
+	// Send HTTP GET request
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch JSON from %s: %w", url, err)
 	}

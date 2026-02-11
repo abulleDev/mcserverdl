@@ -1,6 +1,7 @@
 package paper
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
@@ -12,14 +13,21 @@ type buildVersionManifest struct {
 }
 
 // ServerVersions fetches the list of all available PaperMC build numbers for a given game version.
+// It uses a default background context.
+func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
+	return p.ServerVersionsContext(context.Background(), gameVersion)
+}
+
+// ServerVersionsContext fetches the list of all available PaperMC build numbers for a given game version with context support.
 //
 // Parameters:
+//   - ctx: the context to control the request lifetime.
 //   - gameVersion: the Minecraft version string (e.g., "1.16.5", "1.13-pre7").
 //
 // Returns:
 //   - []string: a slice of build numbers for the specified game version.
 //   - error: an error if the game version is not supported or if any HTTP or JSON decoding issues occur.
-func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
+func (p *Provider) ServerVersionsContext(ctx context.Context, gameVersion string) ([]string, error) {
 	p.Log("Fetching Paper server versions (builds) for %s...", gameVersion)
 
 	// Build manifest URL for the specified game version
@@ -27,7 +35,7 @@ func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
 
 	// Fetch and decode the build manifest
 	var buildData buildVersionManifest
-	if err := internal.FetchJSON(url, &buildData); err != nil {
+	if err := internal.FetchJSON(ctx, url, &buildData); err != nil {
 		return nil, fmt.Errorf("unsupported game version: %s", gameVersion)
 	}
 

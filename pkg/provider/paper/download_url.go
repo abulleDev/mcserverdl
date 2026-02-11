@@ -1,6 +1,7 @@
 package paper
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -15,22 +16,35 @@ type detailManifest struct {
 }
 
 // DownloadURL returns the download URL for the PaperMC server JAR for a given game version and build number.
+// It uses a default background context.
+func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error) {
+	return p.DownloadURLContext(context.Background(), gameVersion, serverVersion)
+}
+
+// DownloadURLContext returns the download URL for the PaperMC server JAR for a given game version and build number with context support.
 //
 // Parameters:
+//   - ctx: the context to control the request lifetime.
 //   - gameVersion: the Minecraft version string (e.g., "1.16.5", "1.13-pre7").
 //   - serverVersion: the PaperMC build number for the specified version.
 //
 // Returns:
 //   - string: the direct download URL for the PaperMC server JAR file if the build exists.
 //   - error: an error if the game version or build number is not found, or if any HTTP or JSON decoding issues occur.
-func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error) {
+func (p *Provider) DownloadURLContext(ctx context.Context, gameVersion, serverVersion string) (string, error) {
 	p.Log("Fetching download URL for Paper %s build %s...", gameVersion, serverVersion)
 
 	// URL to validate the existence of a specific build
 	url := fmt.Sprintf("https://fill.papermc.io/v3/projects/paper/versions/%s/builds/%s", gameVersion, serverVersion)
 
-	// Send HTTP GET request to the specified URL
-	response, err := http.Get(url)
+	// Create a new HTTP request with context
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request for %s: %w", url, err)
+	}
+
+	// Send HTTP GET request
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch JSON from %s: %w", url, err)
 	}
