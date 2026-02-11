@@ -51,13 +51,6 @@ func Download(url, path string, onProgress func(current, total int64)) error {
 	if err != nil {
 		return err
 	}
-	// Ensure the file is closed and removed if an error occurs.
-	defer func() {
-		out.Close()
-		if err != nil {
-			os.Remove(path)
-		}
-	}()
 
 	// Copy the response body to file.
 	written, err := io.Copy(out, &ProgressReader{
@@ -65,11 +58,23 @@ func Download(url, path string, onProgress func(current, total int64)) error {
 		Total:      response.ContentLength, // Get the total size of the file from the Content-Length header.
 		OnProgress: onProgress,
 	})
+	if err != nil {
+		out.Close()
+		os.Remove(path)
+		return err
+	}
 
-	// Ensure the final progress is reported, even if the total size was initially unknown.
+	// Explicitly close the file to check for write errors (e.g. disk full).
+	if closeErr := out.Close(); closeErr != nil {
+		// If closing fails, ensures the file is removed and returns the error.
+		os.Remove(path)
+		return fmt.Errorf("failed to close file: %w", closeErr)
+	}
+
+	// Ensure the final progress is reported only on success.
 	if onProgress != nil {
 		onProgress(written, written)
 	}
 
-	return err
+	return nil
 }
