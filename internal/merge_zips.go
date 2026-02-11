@@ -2,6 +2,7 @@ package internal
 
 import (
 	"archive/zip"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -10,7 +11,12 @@ import (
 // MergeZips combines two zip archives. It overlays the files from overlayZipPath
 // on top of baseZipPath. If a file exists in both archives, the one from
 // overlayZipPath is used in the final outputZipPath.
-func MergeZips(baseZipPath, overlayZipPath, outputZipPath string) error {
+func MergeZips(ctx context.Context, baseZipPath, overlayZipPath, outputZipPath string) (err error) {
+	// Check if context is already cancelled
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
 	// Create the output zip file that will contain the merged content
 	outputZipFile, err := os.Create(outputZipPath)
 	if err != nil {
@@ -41,6 +47,10 @@ func MergeZips(baseZipPath, overlayZipPath, outputZipPath string) error {
 	// Copy all files from the overlay zip to the output zip
 	// These files take precedence
 	for _, file := range overlayZip.File {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+
 		// Record the file name to track that it has been added
 		overlayFiles[file.Name] = struct{}{}
 
@@ -59,6 +69,10 @@ func MergeZips(baseZipPath, overlayZipPath, outputZipPath string) error {
 
 	// Copy files from the base zip, but only if they weren't in the overlay zip.
 	for _, file := range baseZip.File {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+
 		if _, exists := overlayFiles[file.Name]; !exists {
 			if err := copyFileToZip(zipWriter, file); err != nil {
 				return fmt.Errorf("failed to copy file '%s' from base zip: %w", file.Name, err)

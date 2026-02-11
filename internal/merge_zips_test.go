@@ -3,6 +3,7 @@ package internal
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -112,11 +113,29 @@ func TestMergeZips(t *testing.T) {
 	createTestZip(t, overlayZipPath, overlayFiles)
 
 	// Run the function we want to test
-	err := MergeZips(baseZipPath, overlayZipPath, outputZipPath)
-	if err != nil {
-		t.Fatalf("MergeZips failed: %v", err)
-	}
+	t.Run("success", func(t *testing.T) {
+		err := MergeZips(context.Background(), baseZipPath, overlayZipPath, outputZipPath)
+		if err != nil {
+			t.Fatalf("MergeZips failed: %v", err)
+		}
 
-	// Verify that the output zip contains the correct, merged content
-	verifyZipContent(t, outputZipPath, expectedFiles)
+		// Verify that the output zip contains the correct, merged content
+		verifyZipContent(t, outputZipPath, expectedFiles)
+	})
+
+	t.Run("context cancellation", func(t *testing.T) {
+		outputZipPathCancelled := filepath.Join(tempDir, "merged_cancelled.zip")
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel() // Cancel immediately
+
+		err := MergeZips(ctx, baseZipPath, overlayZipPath, outputZipPathCancelled)
+		if err == nil {
+			t.Fatal("expected error for cancelled merge, but got nil")
+		}
+
+		// Verify file clean up
+		if _, err := os.Stat(outputZipPathCancelled); !os.IsNotExist(err) {
+			t.Errorf("expected output file to be removed on cancellation, but it exists: %s", outputZipPathCancelled)
+		}
+	})
 }
