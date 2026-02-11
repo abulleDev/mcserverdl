@@ -1,6 +1,7 @@
 package forge
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -8,16 +9,23 @@ import (
 )
 
 // DownloadURL returns the download URL for the Forge server file for a given game version and loader version.
+// It uses a default background context.
+func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error) {
+	return p.DownloadURLContext(context.Background(), gameVersion, serverVersion)
+}
+
+// DownloadURLContext returns the download URL for the Forge server file for a given game version and loader version with context support.
 // It determines the correct URL format based on the game version.
 //
 // Parameters:
+//   - ctx: the context to control the request lifetime.
 //   - gameVersion: the Minecraft version string (e.g., "1.21.6", "1.7.10-pre4", "1.4").
 //   - serverVersion: the Forge loader version string (e.g., "14.23.4.2720").
 //
 // Returns:
 //   - string: the direct download URL for the Forge server installer/archive file if the versions exist.
 //   - error: an error if the game version or loader version is not found, or if any HTTP or JSON decoding issues occur.
-func (p *Provider) DownloadURL(gameVersion string, serverVersion string) (string, error) {
+func (p *Provider) DownloadURLContext(ctx context.Context, gameVersion, serverVersion string) (string, error) {
 	p.Log("Fetching download URL for Forge %s loader %s...", gameVersion, serverVersion)
 
 	// URL of the version manifest containing all Minecraft forge versions
@@ -25,7 +33,7 @@ func (p *Provider) DownloadURL(gameVersion string, serverVersion string) (string
 
 	// Fetch and decode the forge loader manifest
 	var loaderData map[string][]string
-	if err := internal.FetchJSON(url, &loaderData); err != nil {
+	if err := internal.FetchJSON(ctx, url, &loaderData); err != nil {
 		return "", err
 	}
 

@@ -1,6 +1,7 @@
 package forge
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -8,15 +9,22 @@ import (
 )
 
 // ServerVersions fetches a list of available Forge loader versions for a given Minecraft version.
+// It uses a default background context.
+func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
+	return p.ServerVersionsContext(context.Background(), gameVersion)
+}
+
+// ServerVersionsContext fetches a list of available Forge loader versions for a given Minecraft version with context support.
 // It retrieves the data from the official Forge maven metadata.
 //
 // Parameters:
+//   - ctx: the context to control the request lifetime.
 //   - gameVersion: the Minecraft version string (e.g., "1.21.6", "1.7.10-pre4", "1.4").
 //
 // Returns:
 //   - []string: a slice of Forge loader versions (e.g., "56.0.3", "14.23.4.2720").
 //   - error: an error if the game version is not supported or if any HTTP or JSON decoding issues occur.
-func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
+func (p *Provider) ServerVersionsContext(ctx context.Context, gameVersion string) ([]string, error) {
 	p.Log("Fetching Forge server versions (loaders) for %s...", gameVersion)
 
 	// URL of the version manifest containing all Minecraft forge versions
@@ -24,7 +32,7 @@ func (p *Provider) ServerVersions(gameVersion string) ([]string, error) {
 
 	// Fetch and decode the forge loader manifest
 	var loaderData map[string][]string
-	if err := internal.FetchJSON(url, &loaderData); err != nil {
+	if err := internal.FetchJSON(ctx, url, &loaderData); err != nil {
 		return nil, err
 	}
 

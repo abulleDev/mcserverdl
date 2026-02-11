@@ -1,6 +1,7 @@
 package forge
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -8,18 +9,33 @@ import (
 )
 
 // GameVersions fetches the list of all Minecraft Forge-supported game versions from the official Forge maven metadata.
+// It uses a default background context.
+func (p *Provider) GameVersions() ([]string, error) {
+	return p.GameVersionsContext(context.Background())
+}
+
+// GameVersionsContext fetches the list of all Minecraft Forge-supported game versions from the official Forge maven metadata with context support.
+//
+// Parameters:
+//   - ctx: the context to control the request lifetime.
 //
 // Returns:
 //   - []string: a slice of Minecraft versions supported by Forge (e.g., "1.21.6", "1.7.10-pre4", "1.4").
 //   - error: an error if any HTTP or JSON decoding issues occur.
-func (p *Provider) GameVersions() ([]string, error) {
+func (p *Provider) GameVersionsContext(ctx context.Context) ([]string, error) {
 	p.Log("Fetching supported Forge game versions...")
 
 	// URL of the version manifest containing all Minecraft forge versions
 	const url = "https://files.minecraftforge.net/net/minecraftforge/forge/maven-metadata.json"
 
-	// Send HTTP GET request to the specified URL
-	response, err := http.Get(url)
+	// Create a new HTTP request with context
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request for %s: %w", url, err)
+	}
+
+	// Send HTTP GET request
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch JSON from %s: %w", url, err)
 	}
