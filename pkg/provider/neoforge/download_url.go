@@ -1,25 +1,33 @@
 package neoforge
 
 import (
+	"context"
 	"fmt"
 	"slices"
 )
 
 // DownloadURL returns the download URL for the NeoForge server file for a given game version and loader version.
+// It uses a default background context.
+func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error) {
+	return p.DownloadURLContext(context.Background(), gameVersion, serverVersion)
+}
+
+// DownloadURLContext returns the download URL for the NeoForge server file for a given game version and loader version with context support.
 // It determines the correct URL format based on the game version.
 //
 // Parameters:
+//   - ctx: the context to control the request lifetime.
 //   - gameVersion: the Minecraft version string (e.g., "1.21.6", "25w14craftmine", "1.21").
 //   - serverVersion: the NeoForge loader version string (e.g., "21.0.142-beta", "0.25w14craftmine.5-beta").
 //
 // Returns:
 //   - string: the direct download URL for the NeoForge server installer/archive file if the versions exist.
 //   - error: an error if the game version or loader version is not found, or if any HTTP or XML decoding issues occur.
-func (p *Provider) DownloadURL(gameVersion string, serverVersion string) (string, error) {
+func (p *Provider) DownloadURLContext(ctx context.Context, gameVersion, serverVersion string) (string, error) {
 	p.Log("Fetching download URL for NeoForge %s loader %s...", gameVersion, serverVersion)
 
 	// Fetch all available loader versions for the given game version.
-	loaderVersions, err := p.ServerVersions(gameVersion)
+	loaderVersions, err := p.ServerVersionsContext(ctx, gameVersion)
 	if err != nil {
 		return "", err
 	}

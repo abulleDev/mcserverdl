@@ -1,6 +1,7 @@
 package neoforge
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"net/http"
@@ -16,11 +17,20 @@ type versionManifest struct {
 }
 
 // GameVersions fetches the list of all Minecraft NeoForge-supported game versions from the official NeoForged maven metadata.
+// It uses a default background context.
+func (p *Provider) GameVersions() ([]string, error) {
+	return p.GameVersionsContext(context.Background())
+}
+
+// GameVersionsContext fetches the list of all Minecraft NeoForge-supported game versions from the official NeoForged maven metadata with context support.
+//
+// Parameters:
+//   - ctx: the context to control the request lifetime.
 //
 // Returns:
 //   - []string: a slice of Minecraft versions supported by NeoForge (e.g., "1.21.6", "25w14craftmine", "1.21").
 //   - error: an error if any HTTP or XML decoding issues occur.
-func (p *Provider) GameVersions() ([]string, error) {
+func (p *Provider) GameVersionsContext(ctx context.Context) ([]string, error) {
 	p.Log("Fetching supported NeoForge game versions...")
 
 	// URL of the version manifest containing all Minecraft neoforge versions
@@ -28,8 +38,14 @@ func (p *Provider) GameVersions() ([]string, error) {
 
 	p.Log("Fetching NeoForge-supported game versions...")
 
-	// Send HTTP GET request to the specified URL
-	response, err := http.Get(url)
+	// Create a new HTTP request with context
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request for %s: %w", url, err)
+	}
+
+	// Send HTTP GET request
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch XML from %s: %w", url, err)
 	}
