@@ -1,6 +1,7 @@
 package vanilla
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/abulleDev/mcserverdl/v2/internal"
@@ -15,15 +16,22 @@ type detailManifest struct {
 }
 
 // DownloadURL returns the download URL for the Minecraft vanilla server JAR for a given game version.
+// It uses a default background context.
+func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error) {
+	return p.DownloadURLContext(context.Background(), gameVersion, serverVersion)
+}
+
+// DownloadURLContext returns the download URL for the Minecraft vanilla server JAR for a given game version with context support.
 //
 // Parameters:
+//   - ctx: the context to control the request lifetime.
 //   - gameVersion: the Minecraft version string (e.g., "1.16.5", "15w14a", "1.18-pre2").
 //   - serverVersion: ignored for vanilla as it doesn't have separate server versions.
 //
 // Returns:
 //   - string: the direct download URL for the server JAR file.
 //   - error: an error if the version is not found or if any HTTP or JSON decoding issues occur.
-func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error) {
+func (p *Provider) DownloadURLContext(ctx context.Context, gameVersion, serverVersion string) (string, error) {
 	p.Log("Fetching download URL for Vanilla Minecraft %s...", gameVersion)
 
 	// URL of the version manifest containing all Minecraft vanilla versions
@@ -31,7 +39,7 @@ func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error
 
 	// Fetch and decode the version manifest
 	var versionData versionManifest
-	if err := internal.FetchJSON(url, &versionData); err != nil {
+	if err := internal.FetchJSON(ctx, url, &versionData); err != nil {
 		return "", err
 	}
 
@@ -53,7 +61,7 @@ func (p *Provider) DownloadURL(gameVersion, serverVersion string) (string, error
 
 	// Fetch and decode the version detail manifest
 	var detailData detailManifest
-	if err := internal.FetchJSON(detailURL, &detailData); err != nil {
+	if err := internal.FetchJSON(ctx, detailURL, &detailData); err != nil {
 		return "", err
 	}
 
