@@ -16,7 +16,12 @@ func MergeZips(baseZipPath, overlayZipPath, outputZipPath string) error {
 	if err != nil {
 		return err
 	}
-	defer outputZipFile.Close()
+	defer func() {
+		outputZipFile.Close()
+		if err != nil {
+			os.Remove(outputZipPath)
+		}
+	}()
 
 	// Create a new zip writer to write to the output file
 	zipWriter := zip.NewWriter(outputZipFile)
@@ -59,6 +64,16 @@ func MergeZips(baseZipPath, overlayZipPath, outputZipPath string) error {
 				return fmt.Errorf("failed to copy file '%s' from base zip: %w", file.Name, err)
 			}
 		}
+	}
+
+	// Explicitly close the zip writer to ensure all data is flushed
+	if err := zipWriter.Close(); err != nil {
+		return fmt.Errorf("failed to close zip writer: %w", err)
+	}
+
+	// Explicitly close the file to check for write errors
+	if err := outputZipFile.Close(); err != nil {
+		return fmt.Errorf("failed to close output zip file: %w", err)
 	}
 
 	return nil
