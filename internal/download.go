@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -31,11 +32,17 @@ func (pr *ProgressReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// Download downloads a file from a given URL to a specified path and reports progress via a callback.
+// Download downloads a file from a given URL to a specified path with context support.
 // If the download fails, any partially created file at the destination path will be removed.
-func Download(url, path string, onProgress func(current, total int64)) error {
+func Download(ctx context.Context, url, path string, onProgress func(current, total int64)) error {
+	// Create a new HTTP request with context
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+
 	// Send an HTTP GET request to the URL.
-	response, err := http.Get(url)
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}

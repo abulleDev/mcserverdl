@@ -1,6 +1,7 @@
 package internal_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -41,6 +42,15 @@ func TestDownload(t *testing.T) {
 			// No Content-Length header for this case.
 			w.WriteHeader(http.StatusOK)
 			fmt.Fprint(w, testContent)
+		case "/cancel":
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("start"))
+			if f, ok := w.(http.Flusher); ok {
+				f.Flush()
+			}
+
+			// Wait until the context is cancelled by the client side (which closes the connection)
+			<-r.Context().Done()
 		default:
 			http.NotFound(w, r)
 		}
@@ -53,7 +63,7 @@ func TestDownload(t *testing.T) {
 		destPath := filepath.Join(tempDir, "test.txt")
 
 		// Call the function to be tested.
-		err := internal.Download(server.URL+"/found", destPath, mockProgress(t))
+		err := internal.Download(context.Background(), server.URL+"/found", destPath, mockProgress(t))
 		if err != nil {
 			t.Fatalf("expected no error, but got: %v", err)
 		}
@@ -72,7 +82,7 @@ func TestDownload(t *testing.T) {
 		tempDir := t.TempDir()
 		destPath := filepath.Join(tempDir, "test_no_length.txt")
 
-		err := internal.Download(server.URL+"/found-no-length", destPath, mockProgress(t))
+		err := internal.Download(context.Background(), server.URL+"/found-no-length", destPath, mockProgress(t))
 		if err != nil {
 			t.Fatalf("expected no error, but got: %v", err)
 		}
@@ -91,7 +101,7 @@ func TestDownload(t *testing.T) {
 		tempDir := t.TempDir()
 		destPath := filepath.Join(tempDir, "not_found.txt")
 
-		err := internal.Download(server.URL+"/not-found-path", destPath, mockProgress(t))
+		err := internal.Download(context.Background(), server.URL+"/not-found-path", destPath, mockProgress(t))
 		if err == nil {
 			t.Fatal("expected an error for 404 response, but got nil")
 		}
@@ -106,9 +116,28 @@ func TestDownload(t *testing.T) {
 		// Use a directory as a path, which should cause os.Create to fail.
 		tempDir := t.TempDir()
 
-		err := internal.Download(server.URL+"/found", tempDir, mockProgress(t))
+		err := internal.Download(context.Background(), server.URL+"/found", tempDir, mockProgress(t))
 		if err == nil {
 			t.Fatal("expected an error for invalid destination path, but got nil")
+		}
+	})
+
+	t.Run("context cancellation", func(t *testing.T) {
+		tempDir := t.TempDir()
+		destPath := filepath.Join(tempDir, "cancelled.txt")
+		ctx, cancel := context.WithCancel(context.Background())
+
+		err := internal.Download(ctx, server.URL+"/cancel", destPath, func(current, total int64) {
+			// Cancel the context as soon as we receive progress
+			cancel()
+		})
+		if err == nil {
+			t.Fatal("expected error for cancelled download, but got nil")
+		}
+
+		// Verify the file was removed
+		if _, err := os.Stat(destPath); !os.IsNotExist(err) {
+			t.Errorf("file should have been removed after cancellation, but exists: %s", destPath)
 		}
 	})
 }
