@@ -1,11 +1,13 @@
 package internal
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 type testJSONStruct struct {
@@ -42,7 +44,7 @@ func TestFetchJSON(t *testing.T) {
 		defer testServer.Close()
 
 		var testJSONData testJSONStruct
-		if err := FetchJSON(testServer.URL, &testJSONData); err != nil {
+		if err := FetchJSON(context.Background(), testServer.URL, &testJSONData); err != nil {
 			t.Fatalf("expected no error, got: %v", err)
 		}
 		if len(testJSONData.Array) != 1 {
@@ -61,7 +63,7 @@ func TestFetchJSON(t *testing.T) {
 		defer testServer.Close()
 
 		var testJSONData testJSONStruct
-		if err := FetchJSON(testServer.URL, &testJSONData); err == nil {
+		if err := FetchJSON(context.Background(), testServer.URL, &testJSONData); err == nil {
 			t.Error("expected error for 404 response, got nil")
 		}
 	})
@@ -75,7 +77,7 @@ func TestFetchJSON(t *testing.T) {
 		defer testServer.Close()
 
 		var testJSONData testJSONStruct
-		if err := FetchJSON(testServer.URL, &testJSONData); err == nil {
+		if err := FetchJSON(context.Background(), testServer.URL, &testJSONData); err == nil {
 			t.Error("expected error for invalid JSON, got nil")
 		}
 	})
@@ -96,8 +98,26 @@ func TestFetchJSON(t *testing.T) {
 		defer testServer.Close()
 
 		var testJSONData testJSONStruct
-		if err := FetchJSON(testServer.URL+"/redirect", &testJSONData); err != nil {
+		if err := FetchJSON(context.Background(), testServer.URL+"/redirect", &testJSONData); err != nil {
 			t.Errorf("expected no error, got: %v", err)
+		}
+	})
+
+	t.Run("context cancellation", func(t *testing.T) {
+		// Server that simulates a slow response
+		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(50 * time.Millisecond)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer testServer.Close()
+
+		// Create a context that times out before the server responds
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+		defer cancel()
+
+		var testJSONData testJSONStruct
+		if err := FetchJSON(ctx, testServer.URL, &testJSONData); err == nil {
+			t.Error("expected error for context cancellation, got nil")
 		}
 	})
 }
