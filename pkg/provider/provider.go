@@ -1,5 +1,7 @@
 package provider
 
+import "context"
+
 // Logger defines the interface for logging messages.
 // It abstraction allows the application to inject standard log.Logger,
 // or any custom logger that supports Printf.
@@ -33,17 +35,34 @@ func (b *BaseProvider) Log(format string, v ...any) {
 // Provider defines the standard interface that all Minecraft server providers must implement.
 type Provider interface {
 	// GameVersions returns a list of available game versions (e.g., "1.16.5", "15w14a", "1.18-pre2").
+	// It is equivalent to calling GameVersionsContext with context.Background().
 	GameVersions() ([]string, error)
 
+	// GameVersionsContext returns a list of available game versions with context support.
+	GameVersionsContext(ctx context.Context) ([]string, error)
+
 	// ServerVersions returns a list of available server builds/loader versions for a specific game version.
+	// It is equivalent to calling ServerVersionsContext with context.Background().
 	ServerVersions(gameVersion string) ([]string, error)
 
+	// ServerVersionsContext returns a list of available server builds/loader versions with context support.
+	ServerVersionsContext(ctx context.Context, gameVersion string) ([]string, error)
+
 	// DownloadURL returns the direct download URL for the server jar.
+	// It is equivalent to calling DownloadURLContext with context.Background().
 	DownloadURL(gameVersion, serverVersion string) (string, error)
+
+	// DownloadURLContext returns the direct download URL for the server jar with context support.
+	DownloadURLContext(ctx context.Context, gameVersion, serverVersion string) (string, error)
 
 	// Download downloads the server jar to the specified directory.
 	// onProgress is called periodically with bytes downloaded and total file size.
+	// It is equivalent to calling DownloadContext with context.Background().
 	Download(gameVersion, serverVersion, installDir string, onProgress func(current, total int64)) error
+
+	// DownloadContext downloads the server jar to the specified directory with context support.
+	// onProgress is called periodically with bytes downloaded and total file size.
+	DownloadContext(ctx context.Context, gameVersion, serverVersion, installDir string, onProgress func(current, total int64)) error
 
 	// SetLogger injects a logger into the provider.
 	SetLogger(l Logger)
