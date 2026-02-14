@@ -14,7 +14,7 @@ func main() {
 	logger := log.New(os.Stdout, "", 0)
 
 	// Define command-line flags for server configuration.
-	serverType := flag.String("type", "", "Server type (vanilla, paper, forge, fabric, neoforge)")
+	serverType := flag.String("type", "", "Server type (vanilla, paper, forge, fabric, neoforge, purpur)")
 	gameVersion := flag.String("game", "", "Game version (e.g., 1.21.6, 1.13-pre7, 25w14craftmine)")
 	serverVersion := flag.String("server", "", "Loader/build version (default latest)")
 	path := flag.String("path", "./", "Download path for the server jar")
