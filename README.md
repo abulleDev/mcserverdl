@@ -6,10 +6,10 @@ A command-line tool and Go library to download and install various Minecraft ser
 
 ## Features
 
-- **Multiple Server Types**: Supports Vanilla, Paper, Forge, Fabric, and NeoForge.
+- **Multiple Server Types**: Supports Vanilla, Paper, Forge, Fabric, NeoForge, and Purpur.
 - **Automatic Version Detection**: Automatically fetches the latest loader/build version if not specified.
 - **Smart Installation**:
-  - Directly downloads ready-to-use JARs (Vanilla, Paper, Fabric).
+  - Directly downloads ready-to-use JARs (Vanilla, Paper, Fabric, Purpur).
   - Downloads the installer for modern Forge and NeoForge versions.
   - Automatically patches the vanilla server JAR for older Forge versions that use a patch file.
 - **Easy to Use**: A simple and intuitive command-line interface.
@@ -33,13 +33,13 @@ mcserverdl -type <server_type> -game <game_version> [flags]
 
 ### Command-line Flags
 
-| Flag       | Description                                                                                             | Required |
-| :--------- | :------------------------------------------------------------------------------------------------------ | :------- |
-| `-type`    | The type of server. Supported: `vanilla`, `paper`, `forge`, `fabric`, `neoforge`.                       | **Yes**  |
-| `-game`    | The Minecraft game version (e.g., `1.21`).                                                              | **Yes**  |
-| `-server`  | The version of the mod loader or the build number for Paper. Defaults to the latest version if omitted. | No       |
-| `-path`    | The directory where the server will be installed. Defaults to the current directory (`.`).              | No       |
-| `-version` | Prints the current version of the tool.                                                                 | No       |
+| Flag       | Description                                                                                   | Required |
+| :--------- | :-------------------------------------------------------------------------------------------- | :------- |
+| `-type`    | The type of server. Supported: `vanilla`, `paper`, `forge`, `fabric`, `neoforge`, `purpur`.   | **Yes**  |
+| `-game`    | The Minecraft game version (e.g., `1.21`).                                                    | **Yes**  |
+| `-server`  | The version of the mod loader or the build number. Defaults to the latest version if omitted. | No       |
+| `-path`    | The directory where the server will be installed. Defaults to the current directory (`.`).    | No       |
+| `-version` | Prints the current version of the tool.                                                       | No       |
 
 ### Examples
 
@@ -83,7 +83,7 @@ import (
 func main() {
 	log.SetFlags(0)
 
-	serverType := "paper" // Can be vanilla, paper, fabric, forge, neoforge
+	serverType := "paper" // Can be vanilla, paper, fabric, forge, neoforge, purpur
 	gameVersion := "1.21"
 
 	// 1. Initialize the provider using the factory.
