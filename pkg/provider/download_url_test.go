@@ -8,6 +8,7 @@ import (
 	"github.com/abulleDev/mcserverdl/v2/pkg/provider/forge"
 	"github.com/abulleDev/mcserverdl/v2/pkg/provider/neoforge"
 	"github.com/abulleDev/mcserverdl/v2/pkg/provider/paper"
+	"github.com/abulleDev/mcserverdl/v2/pkg/provider/purpur"
 	"github.com/abulleDev/mcserverdl/v2/pkg/provider/vanilla"
 )
 
@@ -26,6 +27,7 @@ func TestDownloadURL(t *testing.T) {
 		{"Fabric", "1.21.5", "0.16.14", fabric.New(), false, true, true},
 		{"Forge", "1.21.5", "55.0.23", forge.New(), false, true, true},
 		{"NeoForge", "1.21.5", "21.5.75", neoforge.New(), false, true, true},
+		{"Purpur", "1.21.11", "2561", purpur.New(), false, true, true},
 	}
 
 	for _, tc := range testCases {

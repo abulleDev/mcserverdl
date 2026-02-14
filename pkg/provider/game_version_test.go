@@ -8,6 +8,7 @@ import (
 	"github.com/abulleDev/mcserverdl/v2/pkg/provider/forge"
 	"github.com/abulleDev/mcserverdl/v2/pkg/provider/neoforge"
 	"github.com/abulleDev/mcserverdl/v2/pkg/provider/paper"
+	"github.com/abulleDev/mcserverdl/v2/pkg/provider/purpur"
 	"github.com/abulleDev/mcserverdl/v2/pkg/provider/vanilla"
 )
 
@@ -22,6 +23,7 @@ func TestGameVersions(t *testing.T) {
 		{"Fabric", fabric.New(), false},
 		{"Forge", forge.New(), false},
 		{"NeoForge", neoforge.New(), false},
+		{"Purpur", purpur.New(), false},
 	}
 
 	for _, tc := range testCases {
