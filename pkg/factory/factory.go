@@ -8,6 +8,7 @@ import (
 	"github.com/abulleDev/mcserverdl/v2/pkg/provider/forge"
 	"github.com/abulleDev/mcserverdl/v2/pkg/provider/neoforge"
 	"github.com/abulleDev/mcserverdl/v2/pkg/provider/paper"
+	"github.com/abulleDev/mcserverdl/v2/pkg/provider/purpur"
 	"github.com/abulleDev/mcserverdl/v2/pkg/provider/vanilla"
 )
 
@@ -23,6 +24,8 @@ func New(serverType string) (provider.Provider, error) {
 		return forge.New(), nil
 	case "neoforge":
 		return neoforge.New(), nil
+	case "purpur":
+		return purpur.New(), nil
 	default:
 		return nil, fmt.Errorf("unknown server type '%s'", serverType)
 	}
