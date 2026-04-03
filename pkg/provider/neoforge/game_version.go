@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 type versionManifest struct {
@@ -68,21 +67,9 @@ func (p *Provider) GameVersionsContext(ctx context.Context) ([]string, error) {
 
 	// Iterate over all loader versions to extract the corresponding game version
 	for _, loaderVersion := range versionData.Versioning.Versions.Version {
-		isSnapshot := strings.HasPrefix(loaderVersion, "0.")
-
-		var gameVersion string
-		if isSnapshot {
-			// Extract game version from snapshot format (e.g., "0.25w14craftmine.5-beta" -> "25w14craftmine")
-			firstDotIndex := strings.Index(loaderVersion, ".")
-			lastDotIndex := strings.LastIndex(loaderVersion, ".")
-			if firstDotIndex == -1 || lastDotIndex == -1 || firstDotIndex == lastDotIndex {
-				return nil, fmt.Errorf("invalid snapshot version format: %s", loaderVersion)
-			}
-			gameVersion = loaderVersion[firstDotIndex+1 : lastDotIndex]
-		} else {
-			// Extract game version from release format (e.g., "21.0.142-beta" -> "1.21")
-			upToLastDot := loaderVersion[:strings.LastIndex(loaderVersion, ".")]
-			gameVersion = "1." + strings.TrimSuffix(upToLastDot, ".0")
+		gameVersion, err := parseGameVersion(loaderVersion)
+		if err != nil {
+			return nil, err
 		}
 
 		// Add the game version if it's new

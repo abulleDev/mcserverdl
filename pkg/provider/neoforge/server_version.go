@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 // ServerVersions fetches a list of available NeoForge loader versions for a given Minecraft version.
@@ -57,21 +56,9 @@ func (p *Provider) ServerVersionsContext(ctx context.Context, gameVersion string
 	// Filter loader versions that match the requested game version
 	matchingLoaderVersions := make([]string, 0, len(versionData.Versioning.Versions.Version))
 	for _, loaderVersion := range versionData.Versioning.Versions.Version {
-		isSnapshot := strings.HasPrefix(loaderVersion, "0.")
-
-		var currentGameVersion string
-		if isSnapshot {
-			// Extract game version from snapshot format (e.g., "0.25w14craftmine.5-beta" -> "25w14craftmine")
-			firstDotIndex := strings.Index(loaderVersion, ".")
-			lastDotIndex := strings.LastIndex(loaderVersion, ".")
-			if firstDotIndex == -1 || lastDotIndex == -1 || firstDotIndex == lastDotIndex {
-				return nil, fmt.Errorf("invalid snapshot version format: %s", loaderVersion)
-			}
-			currentGameVersion = loaderVersion[firstDotIndex+1 : lastDotIndex]
-		} else {
-			// Extract game version from release format (e.g., "21.0.142-beta" -> "1.21")
-			upToLastDot := loaderVersion[:strings.LastIndex(loaderVersion, ".")]
-			currentGameVersion = "1." + strings.TrimSuffix(upToLastDot, ".0")
+		currentGameVersion, err := parseGameVersion(loaderVersion)
+		if err != nil {
+			return nil, err
 		}
 
 		// If the extracted game version matches the requested one, add the raw loader version to our list
