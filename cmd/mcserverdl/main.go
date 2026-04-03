@@ -25,7 +25,7 @@ func main() {
 
 	// If version flag is set, print version and exit.
 	if *showVersion {
-		logger.Println("mcserverdl v2.0.0")
+		logger.Println("mcserverdl v2.2.2")
 		return
 	}
 
